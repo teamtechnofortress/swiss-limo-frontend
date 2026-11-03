@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background: #0b0b0c;
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-ink text-ivory antialiased;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: #c9a96e;
+  color: #0b0b0c;
+}
+
+@layer components {
+  .text-gold-gradient {
+    background: linear-gradient(120deg, #f1e2bd 0%, #c9a96e 50%, #9c7a43 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hairline {
+    border-color: rgba(201, 169, 110, 0.18);
+  }
+
+  .trip-rich-text {
+    @apply max-w-3xl text-[17px] leading-relaxed text-mute;
+  }
+
+  .trip-rich-text > h2 {
+    @apply relative mt-20 border-t border-gold/20 pt-8 text-3xl text-ivory md:text-4xl;
+  }
+
+  .trip-rich-text > h2:first-child {
+    @apply mt-0 border-t-0 pt-0;
+  }
+
+  .trip-rich-text > h2::before {
+    background: linear-gradient(90deg, #e6d3a6 0%, #c9a96e 100%);
+    content: '';
+    height: 1px;
+    left: 0;
+    position: absolute;
+    top: -1px;
+    width: 4rem;
+  }
+
+  .trip-rich-text > h2:first-child::before {
+    display: none;
+  }
+
+  .trip-rich-text h3 {
+    @apply mt-14 text-2xl text-ivory md:text-3xl;
+  }
+
+  .trip-rich-text p {
+    @apply mt-6;
+  }
+
+  .trip-rich-text h2 + p,
+  .trip-rich-text h3 + p {
+    @apply mt-6;
+  }
+
+  .trip-rich-text ul,
+  .trip-rich-text ol {
+    @apply mt-7 grid gap-x-8 gap-y-3 p-0 sm:grid-cols-2;
+    list-style: none;
+  }
+
+  .trip-rich-text li {
+    @apply relative pl-6 text-ivory/75;
+  }
+
+  .trip-rich-text li::before {
+    @apply absolute left-0 top-[0.65em] h-1.5 w-1.5 rounded-full bg-gold;
+    content: '';
+  }
+
+  .trip-rich-text p:has(> strong) {
+    @apply relative border-l border-gold/50 bg-ink-soft/60 px-6 py-5 text-ivory/80;
+  }
+
+  .trip-rich-text p:has(> strong)::before {
+    @apply absolute -left-px top-0 h-full w-px bg-gold;
+    content: '';
+  }
+
+  .trip-rich-text p:has(> strong) strong {
+    @apply mb-1 block font-sans text-[10px] font-medium uppercase tracking-[0.22em] text-gold;
+  }
+
+  .trip-rich-text a {
+    @apply text-gold underline underline-offset-4 hover:text-gold-soft;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.rise {
+  animation: rise 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.rise-delay {
+  animation-delay: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
