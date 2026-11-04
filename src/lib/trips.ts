@@ -2,6 +2,11 @@ import { api } from './api';
 
 export type TripPricingMode = 'fixed' | 'distance' | 'enquiry';
 export type TripBookingMode = 'online' | 'enquiry';
+export type TripBookingBlockedReason =
+  | 'enquiry_only'
+  | 'pickup_configuration_required'
+  | 'destination_configuration_required'
+  | 'fixed_pricing_configuration_required';
 
 export interface Trip {
   slug: string;
@@ -33,12 +38,33 @@ export interface TripGalleryImage {
 export interface TripDetail {
   slug: string;
   title: string;
-  subtitle: string;
+  subtitle: string | null;
   summary: string;
   descriptionHtml: string;
   region: string;
   coverUrl: string | null;
   gallery: TripGalleryImage[];
+  pricingMode: TripPricingMode;
+  booking: TripBooking;
+}
+
+export interface TripBooking {
+  startBookingAllowed: boolean;
+  reason: TripBookingBlockedReason | null;
+  pickupLocationsOnly: boolean;
+  /** Rappen. The lowest eligible price across all configured departure locations. */
+  startingFromPriceMinor: number | null;
+  departureLocations: TripDepartureLocation[];
+}
+
+export interface TripDepartureLocation {
+  id: number;
+  name: string;
+  placeId: string;
+  address: string;
+  durationMinutes: number;
+  /** Rappen. Present only for fixed-price trips. */
+  startingFromPriceMinor: number | null;
 }
 
 export interface TripFilters {
@@ -83,10 +109,18 @@ interface ApiTripDetailData {
   region?: unknown;
   cover_url?: unknown;
   gallery?: unknown;
+  pricing_mode?: unknown;
+  booking?: unknown;
 }
 
 const pricingModes = new Set<TripPricingMode>(['fixed', 'distance', 'enquiry']);
 const bookingModes = new Set<TripBookingMode>(['online', 'enquiry']);
+const blockedBookingReasons = new Set<TripBookingBlockedReason>([
+  'enquiry_only',
+  'pickup_configuration_required',
+  'destination_configuration_required',
+  'fixed_pricing_configuration_required',
+]);
 
 function positiveInteger(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : fallback;
@@ -148,17 +182,107 @@ function galleryFromApi(value: unknown): TripGalleryImage[] {
   });
 }
 
+function priceMinorFromApi(value: unknown): number | null | undefined {
+  if (value === null || value === undefined) return null;
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : undefined;
+}
+
+function bookingReasonFromApi(value: unknown): TripBookingBlockedReason | null | undefined {
+  if (value === null) return null;
+  return blockedBookingReasons.has(value as TripBookingBlockedReason)
+    ? value as TripBookingBlockedReason
+    : undefined;
+}
+
+function departureLocationsFromApi(value: unknown, pricingMode: TripPricingMode): TripDepartureLocation[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const locations: TripDepartureLocation[] = [];
+  for (const location of value) {
+    if (typeof location !== 'object' || location === null) return null;
+
+    const item = location as {
+      id?: unknown;
+      name?: unknown;
+      place_id?: unknown;
+      address?: unknown;
+      duration_minutes?: unknown;
+      starting_from_price_minor?: unknown;
+    };
+    const startingFromPriceMinor = priceMinorFromApi(item.starting_from_price_minor);
+
+    if (
+      typeof item.id !== 'number' ||
+      !Number.isInteger(item.id) ||
+      typeof item.name !== 'string' ||
+      typeof item.place_id !== 'string' ||
+      typeof item.address !== 'string' ||
+      typeof item.duration_minutes !== 'number' ||
+      !Number.isInteger(item.duration_minutes) ||
+      item.duration_minutes < 0 ||
+      startingFromPriceMinor === undefined
+    ) {
+      return null;
+    }
+
+    locations.push({
+      id: item.id,
+      name: item.name,
+      placeId: item.place_id,
+      address: item.address,
+      durationMinutes: item.duration_minutes,
+      startingFromPriceMinor: pricingMode === 'fixed' ? startingFromPriceMinor : null,
+    });
+  }
+
+  return locations;
+}
+
+function tripBookingFromApi(value: unknown, pricingMode: TripPricingMode): TripBooking | null {
+  if (typeof value !== 'object' || value === null) return null;
+
+  const booking = value as {
+    start_booking_allowed?: unknown;
+    reason?: unknown;
+    pickup_locations_only?: unknown;
+    starting_from_price_minor?: unknown;
+    departure_locations?: unknown;
+  };
+  const startingFromPriceMinor = priceMinorFromApi(booking.starting_from_price_minor);
+  const reason = bookingReasonFromApi(booking.reason);
+  const departureLocations = departureLocationsFromApi(booking.departure_locations, pricingMode);
+  if (
+    typeof booking.start_booking_allowed !== 'boolean' ||
+    typeof booking.pickup_locations_only !== 'boolean' ||
+    reason === undefined ||
+    startingFromPriceMinor === undefined ||
+    !departureLocations
+  ) return null;
+
+  return {
+    startBookingAllowed: booking.start_booking_allowed,
+    reason,
+    pickupLocationsOnly: booking.pickup_locations_only,
+    startingFromPriceMinor: pricingMode === 'fixed' ? startingFromPriceMinor : null,
+    departureLocations,
+  };
+}
+
 function tripDetailFromApi(value: unknown): TripDetail | null {
   if (typeof value !== 'object' || value === null) return null;
 
   const trip = value as ApiTripDetailData;
+  const pricingMode = trip.pricing_mode as TripPricingMode;
+  const booking = tripBookingFromApi(trip.booking, pricingMode);
   if (
     typeof trip.slug !== 'string' ||
     typeof trip.title !== 'string' ||
-    typeof trip.subtitle !== 'string' ||
+    (typeof trip.subtitle !== 'string' && trip.subtitle !== null) ||
     typeof trip.summary !== 'string' ||
     typeof trip.description_html !== 'string' ||
-    typeof trip.region !== 'string'
+    typeof trip.region !== 'string' ||
+    !pricingModes.has(pricingMode) ||
+    !booking
   ) {
     return null;
   }
@@ -172,6 +296,8 @@ function tripDetailFromApi(value: unknown): TripDetail | null {
     region: trip.region,
     coverUrl: typeof trip.cover_url === 'string' && trip.cover_url.length > 0 ? trip.cover_url : null,
     gallery: galleryFromApi(trip.gallery),
+    pricingMode,
+    booking,
   };
 }
 

@@ -6,9 +6,11 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { PlaceField } from './PlaceField';
 import { OfferCard } from './OfferCard';
 import { Turnstile } from './Turnstile';
+import { CustomerDetailsForm } from './CustomerDetailsForm';
 import { Button, Card, Field, inputClass } from '@/components/ui/primitives';
 import { api, ApiError } from '@/lib/api';
 import { addDays, formatDateTime, money, zurichLocalToIso, zurichToday } from '@/lib/format';
+import { createPublicBooking, resolveCheckoutUrl } from '@/lib/public-booking';
 import { getPublicConfig } from '@/lib/public-config';
 import type { PaymentMethodKey, PlaceValue, Quote, QuoteOffer, RouteMetrics } from '@/lib/types';
 
@@ -20,17 +22,6 @@ export interface BookingFlowProps {
   passengers?: number;
   vehicle?: string;
 }
-
-const PAYMENT_OPTIONS: Record<PaymentMethodKey, { title: string; text: string }> = {
-  online: {
-    title: 'Pay online',
-    text: 'Secure card or Apple Pay payment. Your booking is confirmed once payment is received.',
-  },
-  cash_on_arrival: {
-    title: 'Pay on arrival',
-    text: 'Pay your chauffeur in cash. Confirm your booking from the link in your email.',
-  },
-};
 
 const STEPS = [
   { step: 1, label: 'Journey' },
@@ -156,38 +147,34 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
     setBusy(true);
 
     try {
-      const res = await api<{
-        data: { reference: string };
-        meta: { access_token: string; checkout_url: string | null };
-      }>('/public/bookings', {
-        method: 'POST',
-        body: JSON.stringify({
-          quote_token: quote.token,
-          vehicle_id: selected.vehicle_id,
-          payment_method: payment,
-          customer: {
-            name: customer.name.trim(),
-            email: customer.email.trim(),
-            phone: customer.phone.trim(),
-          },
-          flight_number: flight.trim() || null,
-          ...(turnstileToken ? { turnstile_token: turnstileToken } : {}),
-        }),
+      const booking = await createPublicBooking({
+        quoteToken: quote.token,
+        vehicleId: selected.vehicle_id,
+        paymentMethod: payment,
+        customer: { name: customer.name.trim(), email: customer.email.trim(), phone: customer.phone.trim() },
+        flightNumber: flight.trim() || null,
+        turnstileToken,
       });
 
       // The access token stays in this browser tab only. The booking page reads it from here.
-      sessionStorage.setItem(`limo:access:${res.data.reference}`, res.meta.access_token);
+      sessionStorage.setItem(`limo:access:${booking.reference}`, booking.accessToken);
 
-      if (res.meta.checkout_url) {
-        window.location.assign(res.meta.checkout_url);
+      if (payment === 'online') {
+        const checkoutUrl = await resolveCheckoutUrl(booking).catch(() => null);
+        if (checkoutUrl) {
+          window.location.assign(checkoutUrl);
+          return;
+        }
+        router.push(`/bookings/${booking.reference}`);
         return;
       }
 
-      router.push(`/bookings/${res.data.reference}`);
+      router.push(`/bookings/${booking.reference}`);
     } catch (e) {
-      if (e instanceof ApiError && e.code === 'quote_unavailable') {
+      if (e instanceof ApiError && ['quote_unavailable', 'slot_unavailable', 'vehicle_not_in_quote'].includes(e.code)) {
         setQuote(null);
         setStep(1);
+        setSelectedId(null);
       }
       setError(messageOf(e));
     } finally {
@@ -341,67 +328,20 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
 
         {step === 3 && quote && selected && (
-          <form onSubmit={confirmBooking} className="space-y-8">
-            <h2 className="text-3xl">Your details</h2>
-
-            <div className="grid gap-5 md:grid-cols-2">
-              <Field label="Full name">
-                <input className={inputClass} value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} autoComplete="name" required />
-              </Field>
-              <Field label="Email">
-                <input type="email" className={inputClass} value={customer.email} onChange={(e) => setCustomer({ ...customer, email: e.target.value })} autoComplete="email" required />
-              </Field>
-              <Field label="Mobile phone" hint="Your chauffeur may call you on arrival.">
-                <input type="tel" className={inputClass} value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} autoComplete="tel" required />
-              </Field>
-              <Field label="Flight number (optional)" hint="Helps us plan your pickup if you are arriving by air.">
-                <input className={inputClass} value={flight} onChange={(e) => setFlight(e.target.value.toUpperCase())} placeholder="LX 1234" />
-              </Field>
-            </div>
-
-            <div>
-              <p className="mb-4 text-xs uppercase tracking-[0.2em] text-mute">Payment</p>
-              <div className="grid gap-4">
-                {quote.payment_methods.map((method) => (
-                  <label
-                    key={method}
-                    className={`flex cursor-pointer gap-4 rounded-2xl border p-5 transition ${
-                      payment === method ? 'border-gold bg-ink-raised' : 'border-line hover:border-gold/50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="payment"
-                      value={method}
-                      checked={payment === method}
-                      onChange={() => setPayment(method)}
-                      className="mt-1 accent-[#c9a96e]"
-                    />
-                    <span>
-                      <span className="block text-base">{PAYMENT_OPTIONS[method].title}</span>
-                      <span className="mt-1 block text-sm text-mute">{PAYMENT_OPTIONS[method].text}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
-
-            <div className="flex flex-col-reverse gap-4 pt-2 sm:flex-row sm:justify-between">
-              <Button variant="outline" type="button" onClick={() => setStep(vehicle ? 1 : 2)}>
-                <ArrowLeft size={16} /> Back
-              </Button>
-              <Button type="submit" disabled={busy}>
-                {busy
-                  ? 'Please wait…'
-                  : payment === 'online'
-                    ? 'Continue to secure payment'
-                    : 'Confirm booking'}
-                {!busy && <ArrowRight size={16} />}
-              </Button>
-            </div>
-          </form>
+          <CustomerDetailsForm
+            customer={customer}
+            onCustomerChange={setCustomer}
+            flightNumber={flight}
+            onFlightNumberChange={setFlight}
+            paymentMethods={quote.payment_methods}
+            payment={payment}
+            onPaymentChange={setPayment}
+            turnstileSiteKey={turnstileSiteKey}
+            onTurnstileToken={setTurnstileToken}
+            onSubmit={confirmBooking}
+            onBack={() => setStep(vehicle ? 1 : 2)}
+            busy={busy}
+          />
         )}
       </div>
 

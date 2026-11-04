@@ -1,11 +1,29 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowUpRight, Images } from 'lucide-react';
+import { ArrowUpRight, Clock3, Images, MapPin } from 'lucide-react';
 import { ButtonLink, Container, Eyebrow, GoldRule, ImagePlaceholder } from '@/components/ui/primitives';
-import { getTripDetail } from '@/lib/trips';
+import { money } from '@/lib/format';
+import { getTripDetail, type TripBookingBlockedReason } from '@/lib/trips';
 
 type Params = Promise<{ slug: string }>;
+
+function durationLabel(minutes: number): string {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) return `${remainingMinutes} min`;
+  return remainingMinutes === 0
+    ? `${hours} ${hours === 1 ? 'hour' : 'hours'}`
+    : `${hours} ${hours === 1 ? 'hour' : 'hours'} ${remainingMinutes} min`;
+}
+
+const bookingBlockedMessages: Record<TripBookingBlockedReason, string> = {
+  enquiry_only: 'This experience is currently arranged personally by our team.',
+  pickup_configuration_required: 'Online booking is being prepared for this experience. Our team can arrange it for you.',
+  destination_configuration_required: 'Online booking is being prepared for this experience. Our team can arrange it for you.',
+  fixed_pricing_configuration_required: 'A tailored proposal is available from our team for this experience.',
+};
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
@@ -32,6 +50,10 @@ export default async function TripPage({ params }: { params: Params }) {
 
   const gallery = trip.gallery.slice(0, 3);
   const hasGallery = gallery.length > 0;
+  const canStartBooking = trip.booking.startBookingAllowed && trip.pricingMode !== 'enquiry';
+  const enquiryHref = `/contact?trip=${encodeURIComponent(trip.slug)}`;
+  const startingPrice = trip.pricingMode === 'fixed' ? trip.booking.startingFromPriceMinor : null;
+  const departureLocations = trip.booking.pickupLocationsOnly ? trip.booking.departureLocations : [];
 
   return (
     <Container className="pb-32 pt-12 md:pt-20">
@@ -44,7 +66,9 @@ export default async function TripPage({ params }: { params: Params }) {
       <header className="max-w-5xl">
         <Eyebrow>{trip.region}</Eyebrow>
         <h1 className="mt-5 text-5xl leading-[0.94] md:text-7xl">{trip.title}</h1>
-        <p className="mt-7 max-w-3xl text-xl leading-relaxed text-ivory/80 md:text-2xl">{trip.subtitle}</p>
+        {trip.subtitle && (
+          <p className="mt-7 max-w-3xl text-xl leading-relaxed text-ivory/80 md:text-2xl">{trip.subtitle}</p>
+        )}
       </header>
 
       <section className="mt-12" aria-label={`${trip.title} photo gallery`}>
@@ -110,12 +134,55 @@ export default async function TripPage({ params }: { params: Params }) {
           <div className="rounded-3xl border border-gold/25 bg-ink-soft/80 p-8 backdrop-blur md:p-9">
             <Eyebrow>Private arrangement</Eyebrow>
             <p className="mt-5 font-serif text-3xl leading-tight">Make this day your own</p>
-            <p className="mt-4 text-sm leading-relaxed text-mute">Choose your date, party size and preferred stops. We will shape the pace and confirm every detail with you.</p>
-            <div className="mt-8">
-              <ButtonLink href={`/contact?trip=${encodeURIComponent(trip.slug)}`} className="w-full">
-                Enquire about this trip <ArrowUpRight size={16} />
+            {startingPrice !== null ? (
+              <div className="mt-6 border-y border-line py-5">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-mute">Starting from</p>
+                <p className="mt-1 font-serif text-4xl text-gold">{money(startingPrice)}</p>
+                <p className="mt-2 text-xs leading-relaxed text-mute">Final price depends on your selected pickup, date and vehicle.</p>
+              </div>
+            ) : trip.pricingMode === 'distance' ? (
+              <p className="mt-4 text-sm leading-relaxed text-mute">Your live price is calculated from your final route, date and vehicle.</p>
+            ) : (
+              <p className="mt-4 text-sm leading-relaxed text-mute">Share your preferred date, party size and itinerary and we will prepare a tailored proposal.</p>
+            )}
+            {!canStartBooking && trip.booking.reason && (
+              <p className="mt-4 text-xs leading-relaxed text-gold-soft">{bookingBlockedMessages[trip.booking.reason]}</p>
+            )}
+            <div className="mt-8 grid gap-3">
+              {canStartBooking && (
+                <ButtonLink href={`/trips/${encodeURIComponent(trip.slug)}/book`} className="w-full">
+                  Book now <ArrowUpRight size={16} />
+                </ButtonLink>
+              )}
+              <ButtonLink
+                href={enquiryHref}
+                variant={canStartBooking ? 'outline' : 'gold'}
+                className="w-full"
+              >
+                Enquire now <ArrowUpRight size={16} />
               </ButtonLink>
             </div>
+            {departureLocations.length > 0 && (
+              <div className="mt-8 border-t border-line pt-7">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-mute">Available pickup locations</p>
+                <ul className="mt-5 space-y-5">
+                  {departureLocations.map((location) => (
+                    <li key={location.id}>
+                      <p className="font-medium text-ivory">{location.name}</p>
+                      <p className="mt-1 flex gap-2 text-xs leading-relaxed text-mute">
+                        <MapPin size={14} className="mt-0.5 shrink-0 text-gold" /> {location.address}
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-mute">
+                        <span className="inline-flex items-center gap-1.5"><Clock3 size={14} className="text-gold" /> {durationLabel(location.durationMinutes)}</span>
+                        {location.startingFromPriceMinor !== null && (
+                          <span className="text-gold">From {money(location.startingFromPriceMinor)}</span>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </aside>
       </div>
