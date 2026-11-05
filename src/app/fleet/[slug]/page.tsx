@@ -38,7 +38,7 @@ export default async function VehiclePage({ params }: { params: Params }) {
 
       <div className="grid gap-16 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <VehicleGallery images={vehicle.images} name={vehicle.name} />
+          <VehicleGallery media={vehicle.media} legacyImages={vehicle.images} name={vehicle.name} />
         </div>
 
         <div className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start">

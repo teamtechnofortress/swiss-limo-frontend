@@ -1,5 +1,6 @@
 import { api, ApiError } from './api';
-import type { Vehicle, VehicleCategory } from './types';
+import { config } from './config';
+import type { Vehicle, VehicleCategory, VehicleMedia, VehicleMediaImage } from './types';
 
 interface ApiVehicle {
   id?: unknown;
@@ -13,7 +14,9 @@ interface ApiVehicle {
   price_per_km?: unknown;
   minimum_fare?: unknown;
   amenities?: unknown;
+  media?: unknown;
   image?: unknown;
+  gallery?: unknown;
   images?: unknown;
 }
 
@@ -34,6 +37,39 @@ function numberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function mediaUrl(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length === 0) return null;
+  if (/^https?:\/\//i.test(value)) return value;
+  if (!value.startsWith('/')) return value;
+
+  // The API may return Laravel's relative `/storage/...` path. Resolve it against
+  // the backend origin rather than the Next.js site origin.
+  return `${config.apiUrl.replace(/\/api\/?$/, '')}${value}`;
+}
+
+function mediaImageFromApi(value: unknown): VehicleMediaImage | null {
+  if (!isRecord(value) || typeof value.id !== 'number' || !Number.isInteger(value.id)) return null;
+  const url = mediaUrl(value.url);
+  const thumbnail = value.thumbnail_url === null || value.thumbnail_url === undefined ? null : mediaUrl(value.thumbnail_url);
+  const alt = value.alt === null || value.alt === undefined ? null : typeof value.alt === 'string' ? value.alt : null;
+  return url && (value.thumbnail_url === null || value.thumbnail_url === undefined || thumbnail)
+    ? { id: value.id, url, thumbnail_url: thumbnail, alt }
+    : null;
+}
+
+function mediaFromApi(value: unknown): VehicleMedia {
+  const media = isRecord(value) ? value : null;
+  const cover = mediaImageFromApi(media?.cover);
+  const gallery = Array.isArray(media?.gallery)
+    ? media.gallery.flatMap((item) => {
+      const image = mediaImageFromApi(item);
+      return image ? [image] : [];
+    })
+    : [];
+
+  return { cover, gallery };
+}
+
 /** Converts the public Laravel response into the shape used by the UI. */
 function vehicleFromApi(vehicle: ApiVehicle): Vehicle | null {
   const category = categoryFromApi(vehicle.category);
@@ -41,12 +77,14 @@ function vehicleFromApi(vehicle: ApiVehicle): Vehicle | null {
     return null;
   }
 
-  const imageUrl = isRecord(vehicle.image) && typeof vehicle.image.url === 'string' ? vehicle.image.url : null;
-  const imageUrls = Array.isArray(vehicle.images)
-    ? vehicle.images.filter((image): image is string => typeof image === 'string')
-    : imageUrl
-      ? [imageUrl]
-      : [];
+  const media = mediaFromApi(vehicle.media);
+  const legacyImageUrl = isRecord(vehicle.image) ? mediaUrl(vehicle.image.url) : null;
+  const legacyImageUrls = Array.isArray(vehicle.images)
+    ? vehicle.images.flatMap((image) => typeof image === 'string' ? [mediaUrl(image)].filter((url): url is string => url !== null) : [])
+    : legacyImageUrl ? [legacyImageUrl] : [];
+  const imageUrls = media.cover || media.gallery.length > 0
+    ? [media.cover?.url, ...media.gallery.map((image) => image.url)].filter((url): url is string => Boolean(url))
+    : legacyImageUrls;
 
   return {
     ...(typeof vehicle.id === 'number' ? { id: vehicle.id } : {}),
@@ -62,6 +100,7 @@ function vehicleFromApi(vehicle: ApiVehicle): Vehicle | null {
     amenities: Array.isArray(vehicle.amenities)
       ? vehicle.amenities.filter((amenity): amenity is string => typeof amenity === 'string')
       : [],
+    media,
     images: imageUrls,
   };
 }
@@ -83,6 +122,7 @@ export const STATIC_FLEET: Vehicle[] = [
     price_per_km: 350,
     minimum_fare: 8000,
     amenities: ['wifi', 'water'],
+    media: { cover: null, gallery: [] },
     images: [],
   },
   {
@@ -97,6 +137,7 @@ export const STATIC_FLEET: Vehicle[] = [
     price_per_km: 470,
     minimum_fare: 10000,
     amenities: ['wifi', 'water', 'champagne'],
+    media: { cover: null, gallery: [] },
     images: [],
   },
   {
@@ -111,6 +152,7 @@ export const STATIC_FLEET: Vehicle[] = [
     price_per_km: 380,
     minimum_fare: 9000,
     amenities: ['wifi', 'water'],
+    media: { cover: null, gallery: [] },
     images: [],
   },
   {
@@ -125,6 +167,7 @@ export const STATIC_FLEET: Vehicle[] = [
     price_per_km: 300,
     minimum_fare: 7000,
     amenities: ['wifi'],
+    media: { cover: null, gallery: [] },
     images: [],
   },
   {
@@ -139,6 +182,7 @@ export const STATIC_FLEET: Vehicle[] = [
     price_per_km: null,
     minimum_fare: null,
     amenities: [],
+    media: { cover: null, gallery: [] },
     images: [],
   },
   {
@@ -153,6 +197,7 @@ export const STATIC_FLEET: Vehicle[] = [
     price_per_km: null,
     minimum_fare: null,
     amenities: [],
+    media: { cover: null, gallery: [] },
     images: [],
   },
 ];

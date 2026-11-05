@@ -5,9 +5,10 @@ import { CATEGORY_LABEL, pricePerKm } from '@/lib/format';
 import type { Vehicle } from '@/lib/types';
 
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
-  // Some vehicles returned by the API do not have photos yet. Treat a missing
-  // image list the same as an empty one so the card can show its placeholder.
-  const image = Array.isArray(vehicle.images) ? vehicle.images[0] : undefined;
+  // New public fleet responses expose a curated cover separately from gallery media.
+  // The flattened `images` fallback keeps cards working while older API responses exist.
+  const cover = vehicle.media.cover;
+  const image = cover?.thumbnail_url ?? cover?.url ?? vehicle.images[0];
 
   return (
     <Link
@@ -19,7 +20,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={image}
-            alt={vehicle.name}
+            alt={cover?.alt ?? vehicle.name}
             className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
           />
         ) : (

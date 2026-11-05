@@ -1,5 +1,18 @@
 export type VehicleCategory = 'executive' | 'first_class' | 'van';
 
+/** Publicly managed vehicle media. `thumbnail_url` is preferred for small previews. */
+export interface VehicleMediaImage {
+  id: number;
+  url: string;
+  thumbnail_url: string | null;
+  alt: string | null;
+}
+
+export interface VehicleMedia {
+  cover: VehicleMediaImage | null;
+  gallery: VehicleMediaImage[];
+}
+
 export type PaymentMethodKey = 'online' | 'cash_on_arrival';
 
 export type BookingStatus =
@@ -28,6 +41,8 @@ export interface Vehicle {
   /** Rappen. */
   minimum_fare: number | null;
   amenities: string[];
+  media: VehicleMedia;
+  /** Legacy flattened image URLs retained for existing callers. New UI should use `media`. */
   images: string[];
 }
 
