@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
-import { inputClass } from '@/components/ui/primitives';
 import { autocompletePlaces, type PlaceSuggestion } from '@/lib/places';
 import type { PlaceValue } from '@/lib/types';
 
@@ -87,14 +86,14 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
   return (
     <div className="relative">
       <div className="relative">
-        <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gold" />
+        <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           id={id}
           role="combobox"
           aria-expanded={open && suggestions.length > 0}
           aria-autocomplete="list"
           autoComplete="off"
-          className={`${inputClass} pl-11`}
+          className="w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]"
           placeholder={placeholder}
           value={text}
           onChange={(e) => {
@@ -107,13 +106,13 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
       </div>
 
       {value && (
-        <p className="mt-2 text-xs text-gold/80">Address selected</p>
+        <p className="mt-1.5 text-xs text-[#d97706]">Address selected</p>
       )}
 
       {open && suggestions.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-gold/25 bg-ink-raised shadow-gold"
+          className="absolute z-30 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg"
         >
           {suggestions.map((s) => (
             <li key={s.placeId}>
@@ -125,9 +124,9 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
                   e.preventDefault();
                   choose(s);
                 }}
-                className="flex w-full items-start gap-3 px-5 py-3.5 text-left text-sm text-ivory/85 transition hover:bg-gold/10 hover:text-gold"
+                className="flex w-full items-start gap-3 px-5 py-3.5 text-left text-sm text-black transition hover:bg-[#fef3c7] hover:text-black"
               >
-                <MapPin size={14} className="mt-0.5 shrink-0 text-gold" />
+                <MapPin size={14} className="mt-0.5 shrink-0 text-[#eab308]" />
                 <span>{s.text}</span>
               </button>
             </li>

@@ -1,55 +1,116 @@
 import Link from 'next/link';
-import { GoldRule } from '@/components/ui/primitives';
+import { Facebook, Instagram, Linkedin, Youtube, Phone, Mail, MapPin } from 'lucide-react';
 import type { SiteSettings } from '@/lib/public-config';
 
 export function Footer({ site }: { site: SiteSettings }) {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="mt-32 border-t hairline bg-ink-soft/40">
-      <div className="mx-auto grid max-w-7xl gap-14 px-6 py-20 md:grid-cols-4 lg:px-10">
-        <div className="md:col-span-2">
-          <div className="flex items-center gap-4">
+    <footer className="border-t border-white/10 bg-[#0d1b2a] text-white">
+      {/* Main Footer Content - Reduced py-12 to py-8 for tighter spacing */}
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 py-8 md:grid-cols-4 lg:px-8 md:divide-x md:divide-white/10">
+        
+        {/* Column 1: Logo & Description */}
+        <div className="pb-6 md:pb-0 md:pr-8">
+          <Link href="/" className="inline-flex flex-col items-start gap-1">
             {site.logoUrl && (
-              <span className="block w-[280px] shrink-0 overflow-hidden">
-                {/* The configured logo is hosted by the public API, so a native image avoids a fixed host allow-list. */}
+              <span className="block h-14 w-48 shrink-0">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={site.logoUrl} alt={site.name} className="w-full object-contain drop-shadow-[0_0_18px_rgba(201,169,110,0.16)]" />
+                <img 
+                  src={site.logoUrl} 
+                  alt={site.name} 
+                  className="h-full w-full object-contain object-left" 
+                />
               </span>
             )}
-            {!site.logoUrl && <p className="font-serif text-3xl tracking-[0.12em] text-gold-gradient">{site.name.toUpperCase()}</p>}
+            {!site.logoUrl && (
+              <p className="font-serif text-2xl font-bold tracking-[0.12em] text-white">
+                {site.name.toUpperCase()}
+              </p>
+            )}
+            <p className="mt-1 text-[8px] font-bold uppercase tracking-[0.4em] text-white/80">
+              Swiss Premium Chauffeur Services
+            </p>
+          </Link>
+        </div>
+
+        {/* Column 2: Quick Links (Split into two visual columns) */}
+        <div className="pb-6 md:pb-0 md:px-8">
+          <p className="mb-4 text-sm font-bold text-[#f1c75b]">Quick Links</p>
+          <div className="flex gap-8 text-sm font-medium text-gray-400">
+            {/* Left list */}
+            <ul className="space-y-2">
+              <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/airport-transfers" className="hover:text-white transition-colors">Services</Link></li>
+              <li><Link href="/trips" className="hover:text-white transition-colors">Day Trips & Tours</Link></li>
+            </ul>
+            {/* Right list */}
+            <ul className="space-y-2">
+              <li><Link href="/fleet" className="hover:text-white transition-colors">Our Fleet</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+            </ul>
           </div>
-          <GoldRule className="my-6" />
-          <p className="max-w-md text-sm leading-relaxed text-mute">
-            Private chauffeur transfers, airport transfers and tours across Switzerland. Quiet vehicles,
-            punctual drivers and prices you can see before you book.
-          </p>
         </div>
 
-        <div>
-          <p className="mb-5 text-[11px] uppercase tracking-[0.3em] text-gold">Explore</p>
-          <ul className="space-y-3 text-sm text-ivory/75">
-            <li><Link href="/fleet" className="hover:text-gold">Our fleet</Link></li>
-            <li><Link href="/airport-transfers" className="hover:text-gold">Airport transfers</Link></li>
-            <li><Link href="/trips" className="hover:text-gold">Private trips</Link></li>
-            <li><Link href="/book" className="hover:text-gold">Book a journey</Link></li>
+        {/* Column 3: Contact Us */}
+        <div className="pb-6 md:pb-0 md:px-8">
+          <p className="mb-4 text-sm font-bold text-[#f1c75b]">Contact Us</p>
+          <ul className="space-y-2 text-sm font-medium text-gray-400">
+            {site.contact.phone && (
+              <li className="flex items-center gap-3">
+                <Phone size={14} className="text-[#f1c75b]" />
+                <a href={`tel:${site.contact.phone}`} className="hover:text-white transition-colors">
+                  {site.contact.phone}
+                </a>
+              </li>
+            )}
+            {site.contact.email && (
+              <li className="flex items-center gap-3">
+                <Mail size={14} className="text-[#f1c75b]" />
+                <a href={`mailto:${site.contact.email}`} className="hover:text-white transition-colors">
+                  {site.contact.email}
+                </a>
+              </li>
+            )}
+            {site.contact.address && (
+              <li className="flex items-start gap-3">
+                <MapPin size={14} className="mt-0.5 shrink-0 text-[#f1c75b]" />
+                <span className="leading-relaxed">{site.contact.address}</span>
+              </li>
+            )}
           </ul>
         </div>
 
-        <div>
-          <p className="mb-5 text-[11px] uppercase tracking-[0.3em] text-gold">Contact</p>
-          <ul className="space-y-3 text-sm text-ivory/75">
-            {site.contact.email && <li><a href={`mailto:${site.contact.email}`} className="hover:text-gold">{site.contact.email}</a></li>}
-            {site.contact.phone && <li>{site.contact.phone}</li>}
-            {site.contact.address && <li className="max-w-xs leading-relaxed text-mute">{site.contact.address}</li>}
-            <li><Link href="/about" className="hover:text-gold">About us</Link></li>
-          </ul>
+        {/* Column 4: Follow Us */}
+        <div className="md:pl-8">
+          <p className="mb-4 text-sm font-bold text-[#f1c75b]">Follow Us</p>
+          <div className="flex gap-2">
+            <a href="#" aria-label="Facebook" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-[#f1c75b] hover:text-[#0d1b2a]">
+              <Facebook size={14} />
+            </a>
+            <a href="#" aria-label="Instagram" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-[#f1c75b] hover:text-[#0d1b2a]">
+              <Instagram size={14} />
+            </a>
+            <a href="#" aria-label="LinkedIn" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-[#f1c75b] hover:text-[#0d1b2a]">
+              <Linkedin size={14} />
+            </a>
+            <a href="#" aria-label="YouTube" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-[#f1c75b] hover:text-[#0d1b2a]">
+              <Youtube size={14} />
+            </a>
+          </div>
         </div>
       </div>
-      <div className="border-t hairline">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-6 text-xs text-mute md:flex-row md:justify-between lg:px-10">
+
+      {/* Bottom Bar - Reduced py-4 to py-3 for tighter spacing */}
+      <div className="border-t border-white/10">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-3 text-xs font-medium text-gray-400 md:flex-row lg:px-8">
           <p>© {year} {site.name}. All rights reserved.</p>
-          <p>Prices include VAT where shown. Payments are processed securely by our payment partner.</p>
+          <div className="flex gap-6">
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <span className="text-white/20">|</span>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms & Conditions</Link>
+          </div>
         </div>
       </div>
     </footer>
