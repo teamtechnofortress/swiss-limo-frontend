@@ -1,10 +1,13 @@
-import { CalendarDays, CreditCard, MapPin, Plane, ShieldCheck, Clock, Receipt } from 'lucide-react';
+import { CalendarDays,Gem, CreditCard, MapPin, Plane,Briefcase,Car, MessageSquare, ArrowRight, Users,Plus, ShieldCheck, Clock, Receipt, Mail } from 'lucide-react';
 import { Hero } from '@/components/home/Hero';
 import { VehicleCard } from '@/components/fleet/VehicleCard';
 import { ButtonLink, Card, Container, Eyebrow, GoldRule, Section, SectionHeading } from '@/components/ui/primitives';
 import { TripCard } from '@/components/trips/TripCard';
 import { getVehicles } from '@/lib/fleet';
 import { getTrips } from '@/lib/trips';
+import Image from 'next/image';
+import Link from 'next/link';
+
 
 const TRUST = [
   { icon: Receipt, title: 'Transparent pricing', text: 'A clear rate per kilometre, with VAT shown on every quote. No surprises at the end of the journey.' },
@@ -28,145 +31,396 @@ export default async function HomePage() {
     <>
       <Hero />
 
-      <section className="relative overflow-hidden border-y border-gold/25 bg-[#f8f3e9] py-20 text-ink md:py-24">
-        <div className="absolute inset-x-0 top-0 h-px bg-gold-gradient" aria-hidden="true" />
-        <div className="absolute -left-32 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full border border-gold/15" aria-hidden="true" />
-        <div className="absolute -right-24 top-16 h-56 w-56 rounded-full border border-gold/15" aria-hidden="true" />
+            {/* --- PREMIUM CHAUFFEUR SERVICES --- */}
+          <section className="relative overflow-hidden bg-[#f8f3e9] pt-24 pb-6 text-[#0d1b2a] md:pt-32 md:pb-8">
+        
+        <div className="absolute inset-x-0 top-0 h-[500px] pointer-events-none overflow-hidden" aria-hidden="true">
+          <div className="absolute -right-20 top-10 opacity-[0.06] text-[#0d1b2a]">
+            <svg width="600" height="600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/>
+            </svg>
+          </div>
 
-        <Container className="relative">
-          <header className="mx-auto max-w-3xl text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.38em] text-gold-deep">The Swiss standard</p>
-            <h2 className="mt-5 text-4xl leading-tight text-ink md:text-5xl">Every detail, quietly taken care of</h2>
-            <div className="mx-auto mt-8 flex items-center justify-center gap-3" aria-hidden="true">
-              <span className="h-px w-12 bg-gold-deep/50" />
-              <span className="text-lg text-gold-deep">✦</span>
-              <span className="h-px w-12 bg-gold-deep/50" />
+          <div className="absolute -left-10 top-20 opacity-[0.04] text-[#0d1b2a]">
+            <svg width="500" height="500" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+            </svg>
+          </div>
+        </div>
+
+        <Container className="relative z-10">
+          
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end mb-8">
+            <div>
+              <div className="mb-3 flex items-center gap-3">
+                <span className="h-[3px] w-8 bg-[#f1c75b] shadow-[0_0_2px_#f1c75b]"/>
+                <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#0d1b2a]">
+                  Our Chauffeur Services
+                </p>
+              </div>
+              <h2 className="font-serif text-3xl font-bold text-[#0d1b2a] md:text-4xl lg:text-5xl" style={{ textShadow: '0.75px 0 0 currentColor, -0.75px 0 0 currentColor, 0 0.75px 0 currentColor, 0 -0.75px 0 currentColor' }}>
+                 Premium Chauffeur Services
+              </h2>
             </div>
-            <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-ink/65 md:text-lg">
-              More than a transfer: a considered service designed to make every mile feel effortless.
-            </p>
-          </header>
+            
+            <div className="flex items-start gap-4">
+              <span className="mt-1 h-auto min-h-[40px] w-px shrink-0 bg-gray-400/60" />
+              <p className="max-w-sm text-[13px] leading-relaxed text-gray-600 text-justify">
+                Premium transportation tailored to your travel needs in Switzerland. From airport pickups to private tours, we ensure a comfortable and reliable journey.
+              </p>
+            </div>
+          </div>
 
-          <div className="mt-12 grid gap-5 md:gap-6 md:grid-cols-3">
-            {TRUST.map(({ icon: Icon, title, text }, index) => (
-              <article
-                key={title}
-                className="group relative flex min-h-[252px] flex-col rounded-2xl border border-gold/25 bg-white p-7 shadow-[0_12px_34px_rgba(59,41,15,0.08)] transition duration-500 hover:-translate-y-1 hover:border-gold/55 hover:shadow-[0_20px_44px_rgba(59,41,15,0.14)] md:p-8"
-              >
-                <span className="absolute right-7 top-7 font-serif text-5xl leading-none text-gold/15 md:right-8 md:top-8">0{index + 1}</span>
-                <div className="flex h-14 w-14 items-center justify-center rounded-full border border-gold-deep bg-gold-deep text-ivory shadow-[0_6px_14px_rgba(91,62,22,0.2)]">
-                  <Icon size={21} strokeWidth={1.5} />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Plane, title: 'Airport Transfers', text: 'Punctual and reliable airport pickups and drop-offs.', img: '/images/home/service-airport.jpg' },
+              { icon: Briefcase, title: 'Private Chauffeur', text: 'Flexible hourly or daily chauffeur service.', img: '/images/home/service-chauffeur.jpg' },
+              { icon: Users, title: 'Corporate Travel', text: 'Professional and discreet business transportation.', img: '/images/home/service-corporate.jpg' },
+              { icon: MapPin, title: 'Long Distance Transfers', text: 'Comfortable intercity travel across Switzerland and beyond.', img: '/images/home/service-long-distance.jpg' },
+            ].map((service, i) => (
+              <div key={i} className="group relative rounded-xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md border border-black/5">
+                
+                <div className="relative h-44 w-full rounded-t-xl overflow-visible">
+                  <div className="absolute inset-0 overflow-hidden rounded-t-xl">
+                    <Image 
+                      src={service.img} 
+                      alt={service.title} 
+                      fill 
+                      className="object-cover" 
+                    />
+                  </div>
+                  <div className="absolute -bottom-5 left-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a] shadow-md ring-2 ring-white">
+                    <service.icon size={18} strokeWidth={2.5} />
+                  </div>
                 </div>
-                <h3 className="mt-7 max-w-[15rem] text-3xl leading-tight text-ink">{title}</h3>
-                <p className="mt-4 max-w-sm text-sm leading-relaxed text-ink/65">{text}</p>
-                <div className="mt-auto flex items-center gap-3 border-t border-gold/20 pt-5 text-[10px] font-semibold uppercase tracking-[0.24em] text-gold-deep">
-                  <span className="h-1.5 w-1.5 rounded-full bg-gold-deep" /> Always included
+                
+                <div className="p-4 pt-7">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-[15px] font-sans font-bold leading-tight text-black">
+                      {service.title}
+                    </h3>
+                    <ArrowRight size={16} className="mt-1 shrink-0 text-[#f1c75b]" />
+                  </div>
+                  <p className="mt-2 font-sans text-[12px] leading-relaxed text-black">
+                    {service.text}
+                  </p>
                 </div>
-              </article>
+              </div>
             ))}
+          </div>
+          
+          <div className="mt-12 overflow-hidden rounded-2xl bg-[#f3eee5] shadow-sm border border-black/5">
+            <div className="grid md:grid-cols-12 gap-6 items-stretch p-4 md:p-6">
+              
+              <div className="relative min-h-[220px] md:min-h-[280px] w-full md:col-span-7 rounded-xl overflow-hidden shadow-[0_5px_15px_rgba(19,38,56,0.15)]">
+                <Image 
+                  src="/images/home/zurich-airport.jpg" 
+                  alt="Zurich Airport Transfer" 
+                  fill 
+                  className="object-cover object-center" 
+                />
+              </div>
+
+              <div className="flex flex-col justify-center py-2 md:col-span-5">
+                
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-[3px] w-6 bg-[#f1c75b]" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#172332]">
+                    Premium Airport Transfers
+                  </p>
+                </div>
+                
+                <h2 className="font-serif text-2xl font-bold text-[#0d1b2a] md:text-3xl"
+                     style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}>
+                        Zurich Airport Transfer
+                </h2>
+                
+                <p className="mt-2 text-xs leading-relaxed text-gray-600">
+                  Start your Swiss journey in comfort. Enjoy a private chauffeur transfer from Zurich Airport to your hotel, business meeting or destination anywhere in Switzerland.
+                </p>
+
+                <div className="mt-4 grid grid-cols-4 gap-2 mb-4">
+                  {[
+                    { icon: Plane, text: 'Airport Pickup\n& Drop-off' },
+                    { icon: Clock, text: 'Flight\nTracking' },
+                    { icon: Users, text: 'Meet &\nGreet' },
+                    { icon: Car, text: 'Premium\nMercedes Fleet' }
+                  ].map((feature, i) => (
+                    <div key={i} className={`flex items-center gap-2 ${i !== 3 ? 'border-r border-[#d2c9bc] pr-2' : ''}`}>
+                      <feature.icon size={22} className="shrink-0 text-[#c88d22]" strokeWidth={1.5} />
+                      <span className="whitespace-pre-line text-[9px] font-bold leading-tight text-[#0d1b2a]">{feature.text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <ButtonLink 
+                    href="/book?from=Zurich%20Airport" 
+                    className="!rounded-full !border-none !bg-[#f1c75b] !px-4 !py-2.5 !text-[11px] !font-bold !text-[#111e29] hover:!bg-[#e0b54a]"
+                  >
+                    <Car size={14} className="mr-1.5" /> Book Transfer
+                  </ButtonLink>
+                  <ButtonLink 
+                    href="/airport-transfers"
+                    variant="outline"
+                    className="!rounded-full !border !border-black !bg-white !px-4 !py-2.5 !text-[11px] !font-bold !text-[#111e29] !shadow-none hover:!bg-gray-50"
+                  > 
+                    Airport Transfers
+                  </ButtonLink>
+                </div>
+              </div>
+
+            </div>
           </div>
         </Container>
       </section>
+      
+        {/* --- FEATURED DAY TRIPS & TOURS --- */}
+  <section className="relative overflow-hidden bg-[#0d1b2a] py-4 text-white md:py-6">
+  <div 
+    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    style={{ backgroundImage: `url('/images/home/picswi.jpg')` }}
+    aria-hidden="true"
+  />
+  <div className="absolute inset-0 bg-[#03192e]/70" aria-hidden="true" />
+  
+  <Container className="relative z-10">
+    
+    <div className="mb-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
+      <div>
+        <div className="mb-2 flex items-center gap-3">
+          <span className="h-[3px] w-6 bg-[#f1c75b]" />
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.3em] text-[#f1c75b]">
+            Featured Day Trips & Tours
+          </p>
+        </div>
+        <h2 className="font-serif text-3xl font-bold text-white md:text-[32px]">
+          Discover Switzerland’s Highlights
+        </h2>
+      </div>
+      
+      <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
+        <p className="max-w-xs text-[10px] leading-relaxed text-gray-200">
+          Fixed-price tours to Switzerland’s most iconic destinations.
+        </p>
+        
+        <Link 
+          href="/trips" 
+          className="flex items-center gap-1.5 rounded-full border border-white/50 bg-[#061d3155] px-4 py-2.5 text-[10px] font-bold text-white transition hover:bg-white/10"
+        >
+          View All Tours <ArrowRight size={14} />
+        </Link>
+      </div>
+    </div>
 
-      <Section>
-        <Container>
-          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-            <SectionHeading eyebrow="The fleet" title="Chosen for every kind of journey" subtitle="From a single executive traveller to a party of seven, there is a vehicle made for it." />
-            <ButtonLink href="/fleet" variant="outline">View full fleet</ButtonLink>
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {(trips?.data && trips.data.length > 0 ? trips.data : [
+        { slug: 'zurich-heritage', price: 'CHF 490', title: 'Zurich Heritage & Lake Tour', location: 'Zurich', duration: '6 Hours', desc: "Explore Zurich's historic old town, landmarks and beautiful lakeside.", img: '/images/home/tour-zurich.jpg' },
+        { slug: 'lucerne-titlis', price: 'CHF 590', title: 'Lucerne & Mount Titlis', location: 'Lucerne', duration: '8 Hours', desc: 'Discover Lucerne and the spectacular Mount Titlis with alpine views.', img: '/images/home/tour-lucerne.jpg' },
+        { slug: 'rhine-falls', price: 'CHF 390', title: 'Rhine Falls Day Trip', location: 'Schaffhausen', duration: '5 Hours', desc: "Experience Europe's largest waterfall and the charming town of Schaffhausen.", img: '/images/home/tour-rhine-falls.jpg' },
+        { slug: 'interlaken-alpine', price: 'CHF 690', title: 'Interlaken Alpine Escape', location: 'Interlaken', duration: '10 Hours', desc: 'Enjoy breathtaking alpine scenery, lakes and the charm of Interlaken.', img: '/images/home/tour-interlaken.jpg' },
+      ]).map((trip: any, i: number) => (
+        <div key={i} className="group flex flex-col overflow-hidden rounded-xl bg-white text-[#14202d] shadow-[0_4px_12px_rgba(0,24,33,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          
+          <div className="relative w-full h-[112px] shrink-0 overflow-hidden">
+            <img 
+              src={trip.img || '/images/home/tour-placeholder.jpg'} 
+              alt={trip.title} 
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block'
+              }}
+            />
+            <div className="absolute left-2.5 top-2.5 z-10 rounded-full bg-[linear-gradient(135deg,#ffe08a,#eab039)] px-3 py-1.5 text-[12px] font-bold text-[#14202d] shadow-sm">
+              {trip.price || `CHF ${trip.price}`}
+            </div>
           </div>
-          <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          
+          <div className="flex flex-1 flex-col px-3 py-2.5">
+            <h3 className="text-[14px] font-sans font-bold leading-tight text-black">
+              {trip.title}
+            </h3>
+            
+            <div className="mt-1.5 flex items-center gap-3 text-[10px] font-sans font-medium text-black">
+              <span className="flex items-center gap-1">
+                <MapPin size={13} className="text-[#d38b12]" /> {trip.location || trip.location}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={13} className="text-[#d38b12]" /> {trip.duration}
+              </span>
+            </div>
+            
+            <p className="mt-1.5 line-clamp-2 min-h-[31px] font-sans text-[10px] leading-relaxed text-black">
+              {trip.desc || trip.description}
+            </p>
+
+            <div className="mt-auto flex gap-2 pt-2">
+              <Link 
+                href={`/trips/${trip.slug}`}
+                className="flex flex-1 items-center justify-center rounded-full border border-[#aab0b5] bg-white py-1.5 text-[10px] font-bold text-black transition hover:bg-gray-50"
+              >
+                Details
+              </Link>
+              <Link 
+                href={`/trips/${trip.slug}/book`}
+                className="flex flex-1 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f8d77a,#e7a91f)] py-1.5 text-[10px] font-bold text-black transition hover:bg-[#e0b54a]"
+              >
+                Book Now <ArrowRight size={12} className="ml-1" strokeWidth={2.5} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </Container>
+</section>
+
+          {/* --- OUR LUXURY FLEET --- */}
+      <section className="relative overflow-hidden bg-[#f8f3e9] pt-8 pb-12 md:pt-12 md:pb-16">
+        
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.15] pointer-events-none scale-105"
+          style={{ backgroundImage: `url('/images/home/herofinal.png')` }}
+          aria-hidden="true"
+        />
+        
+        {/* Gradient Overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#f8f3e9]/60 via-transparent to-[#f8f3e9]/90 pointer-events-none" aria-hidden="true" />
+
+        <Container className="relative z-10">
+          
+          {/* Header */}
+          <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <div className="mb-2 flex items-center gap-3">
+                <span className="h-[3px] w-6 bg-[#f1c75b]" />
+                <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#0d1b2a]">
+                  Our Fleet
+                </p>
+              </div>
+              <h2 className="font-serif text-3xl font-bold text-[#0d1b2a] md:text-4xl lg:text-5xl">
+                Our Luxury Fleet
+              </h2>
+            </div>
+            
+            <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
+              <p className="max-w-xs text-[13px] leading-relaxed text-gray-600">
+                Choose the perfect vehicle for your journey.
+              </p>
+              
+              <Link 
+                href="/fleet" 
+                className="flex items-center gap-1.5 rounded-full border border-[#0d1b2a]/20 bg-transparent px-5 py-2.5 text-[11px] font-bold text-[#0d1b2a] transition hover:border-[#0d1b2a] hover:bg-[#0d1b2a]/5"
+              >
+                View All Vehicles <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Fleet Grid */}
+          <div className="grid gap-5 md:grid-cols-3">
             {vehicles.map((vehicle) => (
               <VehicleCard key={vehicle.slug} vehicle={vehicle} />
             ))}
           </div>
-        </Container>
-      </Section>
 
-      <section className="relative overflow-hidden border-y hairline bg-ink-soft/40 py-24 md:py-32">
-        <div className="absolute inset-0 bg-hero-glow opacity-70" aria-hidden="true" />
-        <Container className="relative grid items-center gap-16 lg:grid-cols-2">
-          <div>
-            <Eyebrow className="mb-5">Airport transfers</Eyebrow>
-            <h2 className="text-4xl leading-tight md:text-5xl">
-              From the runway to your door, <span className="italic text-gold-gradient">without the queue</span>
-            </h2>
-            <GoldRule className="mt-8" />
-            <p className="mt-8 max-w-lg leading-relaxed text-mute">
-              Zurich, Geneva and Basel airports. Share your flight number and your chauffeur plans the pickup around
-              your arrival.
-            </p>
-            <div className="mt-10 flex flex-wrap gap-4">
-              <ButtonLink href="/airport-transfers">Airport transfers</ButtonLink>
-              <ButtonLink href="/book?from=Zurich%20Airport" variant="outline">Book from Zurich Airport</ButtonLink>
-            </div>
-          </div>
-          <div className="grid gap-5">
-            {[
-              { icon: Plane, name: 'Zurich Airport', code: 'ZRH' },
-              { icon: MapPin, name: 'Geneva Airport', code: 'GVA' },
-              { icon: MapPin, name: 'Basel EuroAirport', code: 'BSL' },
-            ].map(({ icon: Icon, name, code }) => (
-              <Card key={code} className="flex items-center justify-between p-7">
-                <div className="flex items-center gap-4">
-                  <Icon className="text-gold" size={20} />
-                  <span className="font-serif text-2xl">{name}</span>
-                </div>
-                <span className="font-serif text-lg tracking-[0.3em] text-gold">{code}</span>
-              </Card>
-            ))}
-          </div>
         </Container>
       </section>
 
-      <Section>
-        <Container>
-          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
-            <SectionHeading eyebrow="Private trips" title="Switzerland, at your own pace" subtitle="Lakes, peaks and old towns, with a chauffeur who knows the roads and waits while you explore." />
-            <ButtonLink href="/trips" variant="outline">All trips</ButtonLink>
-          </div>
-          {trips && trips.data.length > 0 ? (
-            <div className="mt-16 grid gap-8 md:grid-cols-3">
-              {trips.data.map((trip) => <TripCard key={trip.slug} trip={trip} />)}
-            </div>
-          ) : (
-            <p className="mt-12 text-mute">Our featured trips will be available shortly.</p>
-          )}
-        </Container>
-      </Section>
 
-      <Section className="bg-ink-soft/40">
-        <Container>
-          <SectionHeading eyebrow="How it works" title="Three steps to your journey" align="center" />
-          <div className="mt-20 grid gap-12 md:grid-cols-3">
-            {STEPS.map((step) => (
-              <div key={step.n} className="text-center">
-                <p className="font-serif text-6xl text-gold-gradient">{step.n}</p>
-                <h3 className="mt-6 text-2xl">{step.title}</h3>
-                <p className="mx-auto mt-4 max-w-xs text-sm leading-relaxed text-mute">{step.text}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-20 flex justify-center gap-6 text-xs uppercase tracking-[0.25em] text-mute">
-            <span className="inline-flex items-center gap-2"><CalendarDays size={14} className="text-gold" />Book ahead</span>
-            <span className="inline-flex items-center gap-2"><CreditCard size={14} className="text-gold" />Pay securely</span>
-          </div>
-        </Container>
-      </Section>
+           {/* --- WHY CHOOSE US --- */}
+ <section className="relative bg-[#071e32] py-4 text-white">
+  <Container className="flex flex-col items-center justify-between gap-6 md:flex-row"> 
+    <h2 className="font-serif text-2xl font-bold whitespace-nowrap md:text-4xl">
+      Why Choose Us?
+    </h2>
+    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 lg:gap-8">
+      {[
+        { 
+          customIcon: (
+            <span className="flex h-7 w-7 shrink-0 overflow-hidden rounded-sm">
+              <svg viewBox="0 0 32 32" className="h-full w-full">
+                <rect width="32" height="32" fill="#d52b1e"/>
+                <path d="M13 6h6v7h7v6h-7v7h-6v-7H6v-6h7z" fill="#fff"/>
+              </svg>
+            </span>
+          ), 
+          text: 'Swiss Quality\n& Precision' 
+        },
+        { icon: Users, text: 'Professional\nChauffeurs' },
+        { icon: Gem, text: 'Luxury &\nComfort' },
+        { icon: Clock, text: 'Reliable &\nOn-Time' },
+        { icon: ShieldCheck, text: 'Safe &\nSecure Booking' }
+      ].map((feature, i) => (
+        <div key={i} className="flex items-center gap-3 border-l border-white/20 pl-4 lg:pl-6 first:border-l-0 first:pl-0">
+          {feature.customIcon ? (
+            feature.customIcon
+          ) : feature.icon ? (
+            <feature.icon size={28} className="shrink-0 text-[#f1c75b]" strokeWidth={1.5} />
+          ) : null}
+          <span className="whitespace-pre-line text-[11px] font-normal leading-tight">
+            {feature.text}
+          </span>
+        </div>
+      ))}
+    </div>
+  </Container>
+</section>
 
-      <Section>
-        <Container>
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-gold/25 bg-ink-soft px-8 py-20 text-center md:px-20">
-            <div className="absolute inset-0 bg-hero-glow" aria-hidden="true" />
-            <div className="relative">
-              <h2 className="text-4xl md:text-6xl">Your next journey starts here</h2>
-              <p className="mx-auto mt-6 max-w-xl text-mute">Check availability and see your price in under a minute.</p>
-              <div className="mt-12">
-                <ButtonLink href="/book">Plan a journey</ButtonLink>
-              </div>
-            </div>
+      
+      {/* --- GET A PERSONALIZED QUOTE --- */}
+      <section className="relative overflow-hidden bg-[#0d1b2a]">
+        
+        <div 
+          className="absolute inset-0 bg-cover bg-top bg-no-repeat"
+          style={{ backgroundImage: `url('/images/home/swit.jpg')` }}
+          aria-hidden="true"
+        />
+
+        <div className="absolute inset-0 bg-[#03192e]/50" aria-hidden="true" />
+
+        <Container className="relative flex min-h-[130px] flex-col items-center justify-between gap-6 py-8 md:flex-row">
+          
+          {/* Text Content */}
+          <div>
+            <h2 className="font-serif text-3xl font-bold text-white md:text-4xl">
+              Get a Personalized Quote Today
+            </h2>
+            <p className="mt-1 text-sm text-gray-200">
+              Plan your trip with our travel experts and receive a custom offer.
+            </p>
           </div>
+
+          {/* Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <ButtonLink 
+              href="/contact" 
+              className="!rounded-full !border-none !bg-[linear-gradient(135deg,#f8d77a,#e7a91f)] !px-6 !py-3 !text-[12px] !font-bold !text-[#111e29] hover:!bg-[#e0b54a]"
+            >
+              <Mail size={16} className="mr-2" /> Request a Quote <ArrowRight size={16} className="ml-1" />
+            </ButtonLink>
+            
+            <a 
+              href="https://wa.me/41791234567"
+              target="_blank" 
+              rel="noreferrer"
+              className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[12px] font-bold text-[#0d1b2a] transition hover:bg-gray-100"
+            >
+              <MessageSquare size={16} className="text-[#25D366]" />
+              WhatsApp Us
+            </a>
+          </div>
+
         </Container>
-      </Section>
+      </section>
+
     </>
   );
 }
