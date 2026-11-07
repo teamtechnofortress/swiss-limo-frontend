@@ -1,7 +1,14 @@
 /** Public configuration. Only NEXT_PUBLIC_ values are available in the browser. */
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '');
+
 export const config = {
-   apiUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000/api',
-    //apiUrl: process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000/api',
+  /**
+   * Laravel API prefix. New deployments supply NEXT_PUBLIC_API_BASE_URL; the
+   * legacy API_URL form remains supported for local and existing deployments.
+   */
+  apiUrl: apiBaseUrl
+    ? `${apiBaseUrl}/api`
+    : process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000/api',
   brandName: process.env.NEXT_PUBLIC_BRAND_NAME ?? 'Swiss Aero Transfer',
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@example.ch',
   contactPhone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '+41 00 000 00 00',

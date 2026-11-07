@@ -17,6 +17,14 @@ type ApiOptions = Omit<RequestInit, 'headers'> & {
   next?: { revalidate?: number };
 };
 
+/**
+ * Reads cacheable public data from Laravel in Server Components. The request
+ * is revalidated every minute, avoiding an API request for every page view.
+ */
+export async function getFromApi<T>(path: string): Promise<T> {
+  return api<T>(path, { next: { revalidate: 60 } });
+}
+
 /** Calls the Laravel API and turns error responses into ApiError with the backend's message. */
 export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const { token, headers, ...rest } = options;
