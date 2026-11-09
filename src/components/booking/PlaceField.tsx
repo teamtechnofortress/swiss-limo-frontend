@@ -33,7 +33,11 @@ export function PlaceField({
   const resolved = useRef(false);
 
   useEffect(() => {
-    session.current = crypto.randomUUID();
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      session.current = crypto.randomUUID();
+    } else {
+      session.current = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    }
   }, []);
 
   useEffect(() => {
