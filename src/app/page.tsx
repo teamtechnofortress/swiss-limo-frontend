@@ -154,12 +154,11 @@ export default async function HomePage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <ButtonLink 
-                    href="/book?from=Zurich%20Airport" 
-                    className="!rounded-full !border-none !bg-[#f1c75b] !px-4 !py-2.5 !text-[11px] !font-bold !text-[#111e29] hover:!bg-[#e0b54a]"
-                  >
-                    <Car size={14} className="mr-1.5" /> Book Transfer
+                  <ButtonLink href="/book?from=Zurich%20Airport" className="!rounded-full !border-none !bg-[#f1c75b] !px-4 !py-2.5 !text-[11px] !font-bold !text-[#111e29] hover:!bg-[#e0b54a]"
+>
+                   <Car size={14} className="mr-1.5" /> Book Transfer
                   </ButtonLink>
+
                   <ButtonLink 
                     href="/airport-transfers"
                     variant="outline"
@@ -176,7 +175,7 @@ export default async function HomePage() {
       </section>
       
         {/* --- FEATURED DAY TRIPS & TOURS --- */}
-  <section className="relative overflow-hidden bg-[#0d1b2a] py-4 text-white md:py-6">
+ <section className="relative overflow-hidden bg-[#0d1b2a] py-4 text-white md:py-6">
   <div 
     className="absolute inset-0 bg-cover bg-center bg-no-repeat"
     style={{ backgroundImage: `url('/images/home/picswi.jpg')` }}
@@ -185,7 +184,6 @@ export default async function HomePage() {
   <div className="absolute inset-0 bg-[#03192e]/70" aria-hidden="true" />
   
   <Container className="relative z-10">
-    
     <div className="mb-4 flex flex-col justify-between gap-6 md:flex-row md:items-end">
       <div>
         <div className="mb-2 flex items-center gap-3">
@@ -213,14 +211,18 @@ export default async function HomePage() {
       </div>
     </div>
 
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    {/* Changed from grid to flex with horizontal scrolling */}
+    <div className="flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {(trips?.data && trips.data.length > 0 ? trips.data : [
         { slug: 'zurich-heritage', price: 'CHF 490', title: 'Zurich Heritage & Lake Tour', location: 'Zurich', duration: '6 Hours', desc: "Explore Zurich's historic old town, landmarks and beautiful lakeside.", img: '/images/home/tour-zurich.jpg' },
         { slug: 'lucerne-titlis', price: 'CHF 590', title: 'Lucerne & Mount Titlis', location: 'Lucerne', duration: '8 Hours', desc: 'Discover Lucerne and the spectacular Mount Titlis with alpine views.', img: '/images/home/tour-lucerne.jpg' },
         { slug: 'rhine-falls', price: 'CHF 390', title: 'Rhine Falls Day Trip', location: 'Schaffhausen', duration: '5 Hours', desc: "Experience Europe's largest waterfall and the charming town of Schaffhausen.", img: '/images/home/tour-rhine-falls.jpg' },
         { slug: 'interlaken-alpine', price: 'CHF 690', title: 'Interlaken Alpine Escape', location: 'Interlaken', duration: '10 Hours', desc: 'Enjoy breathtaking alpine scenery, lakes and the charm of Interlaken.', img: '/images/home/tour-interlaken.jpg' },
       ]).map((trip: any, i: number) => (
-        <div key={i} className="group flex flex-col overflow-hidden rounded-xl bg-white text-[#14202d] shadow-[0_4px_12px_rgba(0,24,33,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+        <div 
+          key={i} 
+          className="group flex w-[240px] shrink-0 snap-start flex-col overflow-hidden rounded-xl bg-white text-[#14202d] shadow-[0_4px_12px_rgba(0,24,33,0.3)] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:w-[260px] lg:w-[280px]"
+        >
           
           <div className="relative w-full h-[112px] shrink-0 overflow-hidden">
             <img 
@@ -243,7 +245,7 @@ export default async function HomePage() {
           </div>
           
           <div className="flex flex-1 flex-col px-3 py-2.5">
-            <h3 className="text-[14px] font-sans font-bold leading-tight text-black">
+            <h3 className="text-[14px] font-sans font-bold leading-tight text-black line-clamp-1">
               {trip.title}
             </h3>
             
@@ -281,22 +283,16 @@ export default async function HomePage() {
 
   </Container>
 </section>
-
           {/* --- OUR LUXURY FLEET --- */}
       <section className="relative overflow-hidden bg-[#f8f3e9] pt-8 pb-12 md:pt-12 md:pb-16">
-        
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.15] pointer-events-none scale-105"
           style={{ backgroundImage: `url('/images/home/herofinal.png')` }}
           aria-hidden="true"
         />
-        
-        {/* Gradient Overlay for readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#f8f3e9]/60 via-transparent to-[#f8f3e9]/90 pointer-events-none" aria-hidden="true" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#f8f3e9]/60 via-transparent to-[#f8f3e9]/90 pointer-events-none" aria-hidden="true" />
 
         <Container className="relative z-10">
-          
-          {/* Header */}
           <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <div className="mb-2 flex items-center gap-3">
@@ -324,8 +320,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* Fleet Grid */}
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {vehicles.map((vehicle) => (
               <VehicleCard key={vehicle.slug} vehicle={vehicle} />
             ))}
@@ -341,7 +336,7 @@ export default async function HomePage() {
     <h2 className="font-serif text-2xl font-bold whitespace-nowrap md:text-4xl">
       Why Choose Us?
     </h2>
-    <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 lg:gap-8">
+    <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 lg:gap-8">
       {[
         { 
           customIcon: (

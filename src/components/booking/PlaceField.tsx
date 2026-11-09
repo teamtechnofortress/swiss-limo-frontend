@@ -11,15 +11,21 @@ interface PlaceFieldProps {
   onChange: (value: PlaceValue | null) => void;
   placeholder: string;
   googleBrowserKey: string;
-  /** Text to resolve on load, for example "Zurich Airport" from an airport link. */
   initialQuery?: string;
+  className?: string;
+  icon?: React.ReactNode;
 }
 
-/**
- * Address input. A journey can only be quoted with a place chosen from the suggestions,
- * because the backend works from Google Place IDs.
- */
-export function PlaceField({ id, value, onChange, placeholder, initialQuery, googleBrowserKey }: PlaceFieldProps) {
+export function PlaceField({ 
+  id, 
+  value, 
+  onChange, 
+  placeholder, 
+  initialQuery, 
+  googleBrowserKey,
+  className = "w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]",
+  icon = <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+}: PlaceFieldProps) {
   const [text, setText] = useState(value?.text ?? initialQuery ?? '');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [open, setOpen] = useState(false);
@@ -30,7 +36,6 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
     session.current = crypto.randomUUID();
   }, []);
 
-  // Resolve a prefilled query to its best match, once.
   useEffect(() => {
     if (resolved.current || value || !initialQuery || !googleBrowserKey) return;
     resolved.current = true;
@@ -45,7 +50,6 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
       .catch(() => undefined);
   }, [googleBrowserKey, initialQuery, value, onChange]);
 
-  // Debounced suggestions while typing. Nothing is fetched once a place is selected.
   useEffect(() => {
     if (value && value.text === text) return;
     if (text.trim().length < 3) {
@@ -72,7 +76,6 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
       clearTimeout(timer);
       controller.abort();
     };
-    // value is read at the time of typing; it is not a trigger on its own.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [googleBrowserKey, text]);
 
@@ -86,14 +89,14 @@ export function PlaceField({ id, value, onChange, placeholder, initialQuery, goo
   return (
     <div className="relative">
       <div className="relative">
-        <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        {icon}
         <input
           id={id}
           role="combobox"
           aria-expanded={open && suggestions.length > 0}
           aria-autocomplete="list"
           autoComplete="off"
-          className="w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]"
+          className={className}
           placeholder={placeholder}
           value={text}
           onChange={(e) => {

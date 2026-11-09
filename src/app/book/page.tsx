@@ -20,23 +20,23 @@ export default async function BookPage({
       
       <div className="relative w-full h-[200px] bg-[#0f172a] flex items-center overflow-hidden shrink-0">
         <img 
-          src="/images/home/hero.png" 
+          src="/images/home/step1.png" 
           alt="Swiss Alps Transfer" 
           className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/90 via-[#0f172a]/60 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/90 via-[#0f172a]/20 to-transparent"></div>
         
         <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-5xl font-serif text-white mb-2">
+          <h1 className="text-3xl md:text-5xl font-serif font-bold text-white mb-2" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}>
             Book Your <span className="text-[#eab308]">Transfer</span>
           </h1>
+
           <p className="text-sm md:text-base text-gray-200 max-w-xl">
             Airport transfers, city rides and private tours across Switzerland.
           </p>
         </div>
       </div>
 
-      {/* Negative margin pulls the form up over the banner. flex-1 pushes footer down. */}
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20 pb-12">
         <BookingFlow
           from={params.from}

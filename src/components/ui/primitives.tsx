@@ -58,7 +58,7 @@ const buttonBase =
   'inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-sm font-medium tracking-wide transition duration-300 disabled:pointer-events-none disabled:opacity-50';
 
 const buttonVariants = {
-  gold: 'bg-gold-gradient text-ink shadow-none hover:shadow-gold hover:-translate-y-0.5',
+  gold: 'bg-[#f1c75b] text-[#0d1b2a] shadow-none hover:bg-[#e0b54a] hover:shadow-[0_4px_12px_rgba(241,199,91,0.4)] hover:-translate-y-0.5',
   outline: 'border border-gold/60 text-gold hover:bg-gold/10',
   ghost: 'text-ivory/80 hover:text-gold',
 } as const;

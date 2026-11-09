@@ -1,6 +1,13 @@
-import { Car, MapPin, CalendarDays, ChevronDown , ArrowLeftRight, Mountain,Clock, Users, ArrowRight, Star, Users2, Clock3, ShieldCheck } from 'lucide-react';
+'use client';
+
+import { Car, MapPin, CalendarDays, ChevronDown, ArrowLeftRight, Mountain, Clock, Users, ArrowRight, Star, Users2, Clock3, ShieldCheck } from 'lucide-react';
 import { ButtonLink, Container } from '@/components/ui/primitives';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { PlaceField } from '@/components/booking/PlaceField';
+import { getPublicConfig } from '@/lib/public-config';
+import type { PlaceValue } from '@/lib/types';
 
 const heroImage = '/images/home/herofinal.png';
 
@@ -11,9 +18,44 @@ const TRUST_BADGES = [
   { icon: ShieldCheck, title: 'Swiss', subtitle: 'Service Quality' },
 ];
 
-export function Hero() {
+export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?: string }) {
+  const router = useRouter();
+  
+  const [googleBrowserKey, setGoogleBrowserKey] = useState(initialKey);
+  const [pickup, setPickup] = useState<PlaceValue | null>(null);
+  const [dropoff, setDropoff] = useState<PlaceValue | null>(null);
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
+  const [passengers, setPassengers] = useState(1);
+
+  useEffect(() => {
+    if (initialKey) return;
+    getPublicConfig()
+      .then((config) => {
+        if (config.googleMapsBrowserKey) {
+          setGoogleBrowserKey(config.googleMapsBrowserKey);
+        }
+      })
+      .catch(() => undefined);
+  }, [initialKey]);
+
+  const handleBookNow = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pickup || !dropoff) return;
+
+    const params = new URLSearchParams({
+      from: pickup.text,
+      to: dropoff.text,
+      ...(date && { date }),
+      ...(time && { time }),
+      passengers: passengers.toString(),
+    });
+
+    router.push(`/book?${params.toString()}`);
+  };
+
   return (
-    <section className="relative isolate h-[450px] bg-[#0d1b2a] md:h-[480px] z-20">
+    <section className="relative isolate bg-[#0d1b2a] pt-12 pb-24 md:pt-16 md:pb-32 z-20">
       
       <div className="absolute inset-0 overflow-hidden">
         <div
@@ -78,13 +120,7 @@ export function Hero() {
         </div>
       </Container>
 
-
-     
-      {/* FLOATING BOOKING FORM */}
-
-
-<div className="absolute bottom-0 left-1/2 z-50 w-full max-w-[1150px] -translate-x-1/2 translate-y-1/2 px-4">
-
+<div className="relative mt-8 w-full max-w-[1150px] px-4 md:absolute md:bottom-0 md:left-1/2 md:z-50 md:-translate-x-1/2 md:translate-y-1/2">
   <div className="relative flex flex-col">
 
     <div className="relative z-10 flex w-fit items-center rounded-t-[24px] rounded-tr-[24px] bg-white pt-1 pr-1 pl-1">
@@ -104,26 +140,25 @@ export function Hero() {
       </button>
     </div>
 
-    <div className="-mt-[1px] rounded-[24px] rounded-tl-none border border-gray-100 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.13)] md:p-5">
+    <form onSubmit={handleBookNow} className="-mt-[1px] rounded-[24px] rounded-tl-none border border-gray-100 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.13)] md:p-5">
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.3fr)_38px_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,0.75fr)_minmax(0,0.95fr)_minmax(0,1.1fr)] xl:items-end xl:gap-2.5">
-
+     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,1.3fr)_38px_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,0.75fr)_minmax(0,0.95fr)_minmax(0,1.1fr)] xl:items-end xl:gap-2.5">
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
             Pickup Location
           </label>
-          <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
-            <MapPin size={18} className="shrink-0 text-[#0d1b2a]" />
-            <input
-              type="text"
-              placeholder="Zurich Airport (ZRH)"
-              className="w-full min-w-0 bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none placeholder:text-gray-500"
-            />
-            <ChevronDown size={16} className="shrink-0 text-[#0d1b2a]" />
-          </div>
+          <PlaceField
+            id="hero-pickup"
+            value={pickup}
+            onChange={setPickup}
+            placeholder="Zurich Airport (ZRH)"
+            googleBrowserKey={googleBrowserKey}
+            className="w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2.5 h-[44px] text-[13px] font-medium text-[#0d1b2a] placeholder:text-gray-500 transition focus:border-[#f1c75b] focus:outline-none shadow-sm"
+            icon={<MapPin size={18} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#0d1b2a]" />}
+          />
         </div>
 
-        <div className="flex items-end justify-center">
+        <div className="hidden items-end justify-center xl:flex">
           <button
             type="button"
             aria-label="Swap pickup and destination"
@@ -137,15 +172,15 @@ export function Hero() {
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
             Destination
           </label>
-          <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
-            <MapPin size={18} className="shrink-0 text-[#0d1b2a]" />
-            <input
-              type="text"
-              placeholder="Lucerne, Switzerland"
-              className="w-full min-w-0 bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none placeholder:text-gray-500"
-            />
-            <ChevronDown size={16} className="shrink-0 text-[#0d1b2a]" />
-          </div>
+          <PlaceField
+            id="hero-dropoff"
+            value={dropoff}
+            onChange={setDropoff}
+            placeholder="Lucerne, Switzerland"
+            googleBrowserKey={googleBrowserKey}
+            className="w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2.5 h-[44px] text-[13px] font-medium text-[#0d1b2a] placeholder:text-gray-500 transition focus:border-[#f1c75b] focus:outline-none shadow-sm"
+            icon={<MapPin size={18} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#0d1b2a]" />}
+          />
         </div>
 
         <div className="min-w-0">
@@ -155,8 +190,9 @@ export function Hero() {
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <CalendarDays size={18} className="shrink-0 text-[#0d1b2a]" />
             <input
-              type="text"
-              placeholder="Select date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
               className="w-full min-w-0 bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none placeholder:text-gray-500"
             />
           </div>
@@ -169,8 +205,9 @@ export function Hero() {
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <Clock size={18} className="shrink-0 text-[#0d1b2a]" />
             <input
-              type="text"
-              placeholder="Select time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
               className="w-full min-w-0 bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none placeholder:text-gray-500"
             />
           </div>
@@ -179,7 +216,11 @@ export function Hero() {
         <div className="min-w-0">
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <Users size={18} className="shrink-0 text-[#0d1b2a]" />
-            <select className="w-full min-w-0 appearance-none bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none">
+            <select 
+              value={passengers}
+              onChange={(e) => setPassengers(Number(e.target.value))}
+              className="w-full min-w-0 appearance-none bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none"
+            >
               <option value="1">1 Passenger</option>
               <option value="2">2 Passengers</option>
               <option value="3">3 Passengers</option>
@@ -193,17 +234,17 @@ export function Hero() {
         </div>
 
         <div className="flex items-end">
-          <Link
-            href="/book"
+          <button
+            type="submit"
             className="flex h-[48px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border-none bg-[#f1c75b] px-4 text-[13px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a]"
           >
             Book Now
             <ArrowRight size={16} strokeWidth={2.5} />
-          </Link>
+          </button>
         </div>
 
       </div>
-    </div>
+    </form>
   </div>
 </div>
 

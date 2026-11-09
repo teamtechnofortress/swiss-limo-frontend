@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { 
   ArrowLeft, ArrowRight, Check, Car, MapPin, Calendar, Clock, 
-  Users, Briefcase, FileText, ClipboardList 
+  Users, Briefcase, FileText, ClipboardList, ShieldCheck, Mail, Phone, Plane, Send
 } from 'lucide-react';
 import { PlaceField } from './PlaceField';
 import { OfferCard } from './OfferCard';
@@ -32,8 +32,8 @@ const STEPS = [
   { step: 4, label: 'Review & Book' },
 ] as const;
 
-const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
-const lightLabel = "mb-1 block text-xs font-bold uppercase tracking-wider text-[#0f172a]";
+const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
+const lightLabel = "mb-1 block text-[11px] font-bold uppercase tracking-wider text-[#0f172a]";
 
 function messageOf(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
@@ -185,12 +185,21 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
     }
   }
 
+  const handleStep3Continue = (e: FormEvent) => {
+    e.preventDefault();
+    if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
+      setError('Please complete your contact details.');
+      return;
+    }
+    setError(null);
+    setStep(4);
+  };
+
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
+    <div className="grid gap-6 lg:grid-cols-12 items-start">
       <div className="lg:col-span-8">
         
-        {/* STEPPER — UNSELECTED CIRCLES GREYISH */}
-        <div className="mb-4 rounded-2xl bg-white px-4 md:px-8 py-2 shadow-sm border border-gray-100">
+        <div className="mb-4 rounded-2xl bg-white px-4 md:px-8 py-2 border-2 border-gray-200 shadow-sm">
           <ol className="flex items-center justify-between min-w-[400px]" aria-label="Booking steps">
             {flowSteps.map(({ step: stepNumber, label }, index) => {
               const done = step > stepNumber;
@@ -200,22 +209,22 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 <li key={label} className="flex flex-1 items-center relative">
                   <div className="flex flex-col items-center z-10 bg-white px-2">
                     <span
-                      className={`flex h-7 w-7 items-center justify-center rounded-full border-2 text-xs font-bold ${
+                      className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-bold ${
                         current
                           ? 'border-[#eab308] bg-[#eab308] text-white'
                           : done
                             ? 'border-[#0f172a] bg-[#0f172a] text-white'
-                            : 'border-gray-200 bg-gray-100 text-gray-500' // Greyish bg for unselected
+                            : 'border-gray-300 bg-gray-300 text-gray-600'
                       }`}
                     >
-                      {done ? <Check size={14} /> : index + 1}
+                      {done ? <Check size={12} /> : index + 1}
                     </span>
-                    <span className={`mt-1 text-[11px] font-semibold ${current || done ? 'text-[#0f172a]' : 'text-gray-500'}`}>
+                    <span className={`mt-1 text-[10px] md:text-[11px] font-semibold ${current || done ? 'text-[#0f172a]' : 'text-gray-500'}`}>
                       {label}
                     </span>
                   </div>
                   {index < flowSteps.length - 1 && (
-                    <div className={`absolute top-3.5 left-[50%] w-full h-[2px] -z-0 ${done ? 'bg-[#0f172a]' : 'bg-gray-200'}`} />
+                    <div className={`absolute top-3 left-[50%] w-full h-[2px] -z-0 ${done ? 'bg-[#0f172a]' : 'bg-gray-200'}`} />
                   )}
                 </li>
               );
@@ -223,78 +232,60 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </ol>
         </div>
 
-        {/* ERROR */}
         {error && (
-          <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        {/* STEP 1 — ADDED SHADOW-LG */}
         {step === 1 && (
-          <div className="rounded-2xl bg-white p-6 md:p-8 shadow-xl border border-gray-100">
-            <h2 className="mb-5 text-3xl font-serif text-[#0f172a]">Plan Your Journey</h2>
+          <div className="rounded-2xl bg-white p-5 md:p-6 border-2 border-gray-200 shadow-xl">
             
-            <form onSubmit={findVehicles} className="space-y-4">
-              <div>
-                <label className={lightLabel}>Pickup</label>
-                <PlaceField
-                  id="pickup"
-                  value={pickup}
-                  onChange={setPickup}
-                  placeholder="Address, hotel or airport"
-                  initialQuery={from}
-                  googleBrowserKey={googleBrowserKey}
-                />
+            <div className="mb-4">
+              <p className="text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
+                Step 1 of 4
+              </p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
+                Plan Your Journey
+              </h2>
+            </div>
+            
+            <form onSubmit={findVehicles} className="space-y-1">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className={lightLabel}>Pickup</label>
+                  <PlaceField
+                    id="pickup"
+                    value={pickup}
+                    onChange={setPickup}
+                    placeholder="Address, hotel or airport"
+                    initialQuery={from}
+                    googleBrowserKey={googleBrowserKey}
+                  />
+                </div>
+                <div>
+                  <label className={lightLabel}>Destination</label>
+                  <PlaceField
+                    id="dropoff"
+                    value={dropoff}
+                    onChange={setDropoff}
+                    placeholder="Address, hotel or airport"
+                    initialQuery={to}
+                    googleBrowserKey={googleBrowserKey}
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className={lightLabel}>Destination</label>
-                <PlaceField
-                  id="dropoff"
-                  value={dropoff}
-                  onChange={setDropoff}
-                  placeholder="Address, hotel or airport"
-                  initialQuery={to}
-                  googleBrowserKey={googleBrowserKey}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label className={lightLabel}>Date</label>
                   <input type="date" className={lightInput} value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
                 </div>
                 <div>
-                  <label className={lightLabel}>Pickup time</label>
+                  <label className={lightLabel}>Time</label>
                   <input type="time" className={lightInput} value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
                 </div>
-              </div>
-
-              <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-2.5">
-                <input
-                  type="checkbox"
-                  checked={roundTrip}
-                  onChange={(e) => setRoundTrip(e.target.checked)}
-                  className="h-4 w-4 accent-[#eab308]"
-                />
-                <span className="text-sm text-black">Add a return journey</span>
-              </label>
-
-              {roundTrip && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className={lightLabel}>Return date</label>
-                    <input type="date" className={lightInput} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required />
-                  </div>
-                  <div>
-                    <label className={lightLabel}>Return pickup time</label>
-                    <input type="time" className={lightInput} value={returnTime} onChange={(e) => setReturnTime(e.target.value)} required />
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={lightLabel}>Passengers</label>
                   <select className={lightInput} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))}>
@@ -304,7 +295,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                   </select>
                 </div>
                 <div>
-                  <label className={lightLabel}>Pieces of luggage</label>
+                  <label className={lightLabel}>Luggage</label>
                   <select className={lightInput} value={bags} onChange={(e) => setBags(Number(e.target.value))}>
                     {Array.from({ length: 15 }, (_, i) => i).map((n) => (
                       <option key={n} value={n}>{n}</option>
@@ -313,29 +304,64 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
               </div>
 
-              <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
+              <div className="flex items-center gap-2 pt-0">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={roundTrip}
+                    onChange={(e) => setRoundTrip(e.target.checked)}
+                    className="h-4 w-4 accent-[#eab308]"
+                  />
+                  <span className="text-xs font-bold text-black uppercase tracking-wider">Add a return journey</span>
+                </label>
+              </div>
 
-              <button
-                type="submit"
-                disabled={busy}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-6 py-3 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50"
-              >
-                {busy ? 'Checking availability…' : 'View available vehicles'}
-                {!busy && <ArrowRight size={16} />}
-              </button>
+              {roundTrip && (
+                <div className="grid grid-cols-2 gap-3 pb-1">
+                  <div>
+                    <label className={lightLabel}>Return date</label>
+                    <input type="date" className={lightInput} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required />
+                  </div>
+                  <div>
+                    <label className={lightLabel}>Return time</label>
+                    <input type="time" className={lightInput} value={returnTime} onChange={(e) => setReturnTime(e.target.value)} required />
+                  </div>
+                </div>
+              )}
+
+              <div className="h-[13px] relative overflow-hidden flex items-start -mb-4">
+                <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
+              </div>
+
+              <div className="flex justify-center w-full relative z-10">
+                <button type="submit" disabled={busy} className="flex w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-8 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50">
+                  {busy ? 'Checking availability…' : 'Continue to choose vehicle'}
+                  {!busy && <ArrowRight size={16} />}
+                </button>
+              </div>
             </form>
           </div>
         )}
 
-        {/* STEP 2 — ADDED SHADOW-LG */}
         {step === 2 && quote && (
-          <div className="rounded-2xl bg-white p-6 md:p-8 shadow-xl border border-gray-100 space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-3xl font-serif text-[#0f172a]">Choose Your Vehicle</h2>
-              <p className="text-xs text-gray-400">Quote valid until {formatDateTime(quote.expires_at)}</p>
+          <div className="rounded-2xl bg-white p-4 md:p-5 border-2 border-gray-200 shadow-xl flex flex-col max-h-[calc(100vh-180px)]">
+            
+            <div className="mb-4">
+              <p className="text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
+                Step 2 of 4
+              </p>
+              <div className="flex items-center justify-between">
+                <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
+                  Choose Your Vehicle
+                </h2>
+                <p className="text-xs text-gray-400">Quote valid until {formatDateTime(quote.expires_at)}</p>
+              </div>
             </div>
 
-            <div className="space-y-3">
+            <div 
+              className="space-y-2.5 overflow-y-auto pr-2 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400"
+              style={{ maxHeight: '220px' }}
+            >
               {offers.map((offer) => (
                 <OfferCard
                   key={offer.vehicle_id}
@@ -346,11 +372,11 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               ))}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 pt-4 sm:flex-row sm:justify-between">
+            <div className="flex flex-col-reverse gap-3 pt-4 mt-2 border-t border-gray-100 sm:flex-row sm:justify-between shrink-0">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-black hover:bg-gray-50 transition-all"
+                className="flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-bold text-black hover:bg-gray-50 transition-all"
               >
                 <ArrowLeft size={16} /> Change journey
               </button>
@@ -358,7 +384,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 type="button"
                 disabled={!selected}
                 onClick={() => setStep(3)}
-                className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50"
               >
                 Continue <ArrowRight size={16} />
               </button>
@@ -366,9 +392,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </div>
         )}
 
-        {/* STEP 3 — ADDED SHADOW-LG */}
         {step === 3 && quote && selected && (
-          <div className="rounded-2xl bg-white p-6 md:p-8 shadow-xl border border-gray-100">
+          <div className="rounded-2xl bg-white p-5 md:p-6 border-2 border-gray-200 shadow-xl">
             <CustomerDetailsForm
               customer={customer}
               onCustomerChange={setCustomer}
@@ -379,90 +404,230 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               onPaymentChange={setPayment}
               turnstileSiteKey={turnstileSiteKey}
               onTurnstileToken={setTurnstileToken}
-              onSubmit={confirmBooking}
+              onSubmit={handleStep3Continue} 
               onBack={() => setStep(vehicle ? 1 : 2)}
               busy={busy}
             />
           </div>
         )}
-      </div>
 
-      {/* SIDEBAR — ADDED SHADOW-LG */}
-      <aside className="lg:col-span-4">
-        <div className="sticky top-24 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden">
-          
-          <div className="bg-[#0f172a] px-5 py-3 flex items-center gap-2">
-            <ClipboardList className="text-[#eab308]" size={18} />
-            <h3 className="text-base font-serif text-white">Your Journey</h3>
-          </div>
+               {step === 4 && quote && selected && (
+          <div className="rounded-2xl bg-white p-4 md:p-5 border-2 border-gray-200 shadow-xl">
+            <div className="mb-4">
+              <p className="text-[14px] font-bold text-[#eab308] tracking-wider mb-0.5">
+                Step 4 of 4
+              </p>
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
+                Review & Book
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">Please review your booking details and confirm your request.</p>
+            </div>
 
-          <div className="p-5 space-y-3 text-sm">
-            
-            {selected && (
-              <div className="mb-2 rounded-xl border border-gray-200 bg-gray-50 p-3 flex items-start gap-3">
-                <Car className="text-[#0f172a] mt-0.5 shrink-0" size={18} />
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-gray-500">Selected vehicle</p>
-                  <p className="mt-0.5 font-serif text-base text-[#0f172a] leading-tight">{selected.name}</p>
-                  <p className="text-xs text-gray-500">{selected.category}</p>
+            <form onSubmit={confirmBooking} className="space-y-3">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                {/* Journey Details */}
+                <div className="rounded-xl border border-gray-200 p-3 bg-white">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><MapPin size={12} /> Journey Details</h3>
+                    <button type="button" onClick={() => setStep(1)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
+                  </div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-black">From</span><span className="font-semibold text-[#0f172a] text-right truncate max-w-[150px]">{outbound?.pickup ?? pickup?.text}</span></div>
+                    <div className="flex justify-between"><span className="text-black">To</span><span className="font-semibold text-[#0f172a] text-right truncate max-w-[150px]">{outbound?.dropoff ?? dropoff?.text}</span></div>
+                    <div className="flex justify-between"><span className="text-black">Date</span><span className="font-semibold text-[#0f172a]">{outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate}</span></div>
+                    <div className="flex justify-between"><span className="text-black">Time</span><span className="font-semibold text-[#0f172a]">{outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime}</span></div>
+                    <div className="flex justify-between"><span className="text-black">Distance</span><span className="font-semibold text-[#0f172a]">{quote.route_summary ? routeSummary(quote.route_summary) : '—'}</span></div>
+                  </div>
+                </div>
+
+                {/* Selected Vehicle */}
+                <div className="rounded-xl border border-gray-200 p-3 bg-white">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Car size={12} /> Selected Vehicle</h3>
+                    <button type="button" onClick={() => setStep(2)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-10 w-16 bg-gray-100 rounded flex items-center justify-center"><Car className="text-gray-400" size={20} /></div>
+                    <div>
+                      <p className="font-serif font-bold text-xs text-[#0f172a]">{selected.name}</p>
+                      <p className="text-[10px] text-gray-500">{selected.category}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 text-[10px] text-gray-600 mt-1">
+                    <span className="flex items-center gap-1"><Users size={10} /> {quote.passengers} Passengers</span>
+                    <span className="flex items-center gap-1"><Briefcase size={10} /> {bags} Bags</span>
+                  </div>
+                </div>
+
+                {/* Your Details */}
+                <div className="rounded-xl border border-gray-200 p-3 bg-white">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Users size={12} /> Your Details</h3>
+                    <button type="button" onClick={() => setStep(3)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
+                  </div>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between"><span className="text-black">Full Name</span><span className="font-semibold text-[#0f172a]">{customer.name}</span></div>
+                    <div className="flex justify-between"><span className="text-black">Email</span><span className="font-semibold text-[#0f172a] truncate max-w-[150px]">{customer.email}</span></div>
+                    <div className="flex justify-between"><span className="text-black">Phone</span><span className="font-semibold text-[#0f172a]">{customer.phone}</span></div>
+                    <div className="flex justify-between"><span className="text-black">Flight Number</span><span className="font-semibold text-[#0f172a]">{flight || '—'}</span></div>
+                  </div>
+                </div>
+
+                {/* Price Summary */}
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50">
+                  <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5 mb-2"><FileText size={12} /> Price Summary</h3>
+                  <div className="space-y-1.5 text-xs mb-2">
+                    <div className="flex justify-between">
+                      <span className="text-black">Distance</span>
+                      <span className="font-semibold text-[#0f172a]">{quote.route_summary ? `${quote.route_summary.distance_km} km` : '—'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-black">Rate per km</span>
+                      <span className="font-semibold text-[#0f172a]">{money(selected.vat.gross / (quote.route_summary?.distance_km || 1))}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-gray-200 pt-2">
+                    <span className="font-bold text-sm text-[#0f172a]">Estimated Total</span>
+                    <span className="font-serif text-xl font-bold text-[#eab308]">{money(selected.vat.gross)}</span>
+                  </div>
                 </div>
               </div>
-            )}
 
-            <SidebarRow icon={<MapPin size={14} />} label="Pickup" value={outbound?.pickup ?? pickup?.text ?? '—'} />
-            <SidebarRow icon={<MapPin size={14} />} label="Destination" value={outbound?.dropoff ?? dropoff?.text ?? '—'} />
-            <SidebarRow 
-              icon={<Calendar size={14} />} 
-              label="Date" 
-              value={outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate} 
-            />
-            <SidebarRow 
-              icon={<Clock size={14} />} 
-              label="Time" 
-              value={outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime} 
-            />
-            <SidebarRow 
-              icon={<Users size={14} />} 
-              label="Passengers" 
-              value={`${quote?.passengers ?? partySize}`} 
-            />
-            <SidebarRow 
-              icon={<Briefcase size={14} />} 
-              label="Luggage" 
-              value={`${bags}`} 
-            />
+              <div className="flex justify-center -mt-24 h-[28px] overflow-hidden">
+                <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
+              </div>
 
-            {roundTrip && (
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between items-center relative -top-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="flex items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-black hover:bg-gray-50 transition-all w-full sm:w-auto"
+                >
+                  <ArrowLeft size={14} /> Back to Details
+                </button>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-1.5 text-xs font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
+                >
+                  {busy ? 'Processing...' : 'Book Now (Request Transfer)'} <Send size={14} />
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
+
+      <aside className="lg:col-span-4 mt-4 lg:mt-16 sticky top-24">
+        <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-xl overflow-hidden">
+          
+          <div className="bg-[#0f172a] px-4 py-2.5 flex items-center gap-2">
+            {step === 4 ? <ShieldCheck className="text-[#eab308]" size={18} /> : <ClipboardList className="text-[#eab308]" size={18} />}
+            <h3 className="text-lg font-serif text-white font-bold">
+              {step === 4 ? 'Confirm Your Booking' : 'Your Booking Summary'}
+            </h3>
+          </div>
+
+          <div className="p-4 space-y-2 text-sm">
+            
+            {step === 4 ? (
+              <div className="space-y-4 pt-1 pb-2">
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  By submitting this request, you agree to our <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
+                </p>
+                
+                <div className="bg-green-50/50 border border-green-100 rounded-xl p-3 space-y-2">
+                  <div className="flex items-center gap-2 text-green-700 text-xs font-semibold">
+                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> Instant booking request
+                  </div>
+                  <div className="flex items-center gap-2 text-green-700 text-xs font-semibold">
+                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> Confirmation via email & WhatsApp
+                  </div>
+                  <div className="flex items-center gap-2 text-green-700 text-xs font-semibold">
+                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> Our team will contact you shortly
+                  </div>
+                </div>
+              </div>
+            ) : (
               <>
+                {selected && (
+                  <div className="mb-2 rounded-xl border border-gray-200 bg-gray-50 p-2 flex items-start gap-2">
+                    <Car className="text-[#0f172a] mt-0.5 shrink-0" size={16} />
+                    <div>
+                      <p className="text-[9px] uppercase tracking-wider text-gray-500">Selected vehicle</p>
+                      <p className="mt-0.5 font-serif text-sm text-[#0f172a] leading-tight">{selected.name}</p>
+                      <p className="text-[10px] text-gray-500">{selected.category}</p>
+                    </div>
+                  </div>
+                )}
+
+                <SidebarRow icon={<MapPin size={14} />} label="Pickup" value={outbound?.pickup ?? pickup?.text ?? '—'} />
+                <SidebarRow icon={<MapPin size={14} />} label="Destination" value={outbound?.dropoff ?? dropoff?.text ?? '—'} />
                 <SidebarRow 
                   icon={<Calendar size={14} />} 
-                  label="Return pickup" 
-                  value={inbound ? formatDateTime(inbound.starts_at) : `${returnDate} ${returnTime}`} 
+                  label="Date" 
+                  value={outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate} 
                 />
-                {outbound && <SidebarRow icon={<FileText size={14} />} label="Outbound route" value={routeSummary(outbound.route)} />}
-                {inbound && <SidebarRow icon={<FileText size={14} />} label="Return route" value={routeSummary(inbound.route)} />}
+                <SidebarRow 
+                  icon={<Clock size={14} />} 
+                  label="Time" 
+                  value={outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime} 
+                />
+                <SidebarRow 
+                  icon={<Users size={14} />} 
+                  label="Passengers" 
+                  value={`${quote?.passengers ?? partySize}`} 
+                />
+                <SidebarRow 
+                  icon={<Briefcase size={14} />} 
+                  label="Luggage" 
+                  value={`${bags}`} 
+                />
+
+                {roundTrip && (
+                  <>
+                    <SidebarRow 
+                      icon={<Calendar size={14} />} 
+                      label="Return" 
+                      value={inbound ? formatDateTime(inbound.starts_at) : `${returnDate} ${returnTime}`} 
+                    />
+                  </>
+                )}
+
+                {quote?.route_summary && (
+                  <SidebarRow icon={<FileText size={14} />} label="Route" value={routeSummary(quote.route_summary)} />
+                )}
+
+                <div className="pt-2">
+                  {selected ? (
+                    <>
+                      <div className="flex items-baseline justify-between border-t border-gray-100 pt-2">
+                        <span className="text-sm font-bold text-[#0f172a]">Estimated Total</span>
+                        <span className="font-serif text-xl text-[#0f172a]">{money(selected.vat.gross)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-500">Choose a vehicle to see your total price.</p>
+                  )}
+                </div>
               </>
             )}
+          </div>
+        </div>
 
-            {quote?.route_summary && (
-              <SidebarRow icon={<FileText size={14} />} label="Total route" value={routeSummary(quote.route_summary)} />
-            )}
-
-            <div className="pt-2">
-              {selected ? (
-                <>
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-sm font-bold text-[#0f172a]">Estimated Total</span>
-                    <span className="font-serif text-2xl text-[#0f172a]">{money(selected.vat.gross)}</span>
-                  </div>
-                  <p className="mt-1 text-right text-xs text-gray-500">
-                    Net {money(selected.vat.net)} · VAT {money(selected.vat.vat)}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-gray-500">Choose a vehicle to see your total price.</p>
-              )}
+        <div className="mt-4 rounded-2xl bg-white border-2 border-gray-200 shadow-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="text-[#eab308]">
+              <ShieldCheck size={20} />
             </div>
+            <h3 className="text-lg font-serif text-[#0f172a] font-bold">Need Help?</h3>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">Our team is here to assist you with your booking, special requests or custom travel plans.</p>
+          <div className="flex gap-2">
+            <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Phone size={12}/> +41 79 123 45 67</button>
+            <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Mail size={12}/> Chat</button>
           </div>
         </div>
       </aside>
@@ -477,13 +642,13 @@ function routeSummary(route: RouteMetrics): string {
 
 function SidebarRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="text-[#0f172a] mt-0.5 shrink-0 w-5 flex justify-center">
+    <div className="flex items-start gap-2">
+      <div className="text-[#0f172a] mt-0.5 shrink-0 w-4 flex justify-center">
         {icon}
       </div>
-      <div className="flex-1 grid grid-cols-[80px_1fr] gap-2 items-baseline">
-        <p className="text-[10px] uppercase tracking-wider text-gray-500">{label}</p>
-        <p className="text-sm font-bold text-[#0f172a] leading-snug truncate">{value}</p>
+      <div className="flex-1 grid grid-cols-[70px_1fr] gap-2 items-baseline">
+        <p className="text-[9px] uppercase tracking-wider text-gray-500">{label}</p>
+        <p className="text-xs font-bold text-[#0f172a] leading-snug truncate">{value}</p>
       </div>
     </div>
   );

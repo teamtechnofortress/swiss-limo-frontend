@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { Check, Car } from 'lucide-react';
 import { CATEGORY_LABEL, money } from '@/lib/format';
 import type { QuoteOffer } from '@/lib/types';
 
@@ -20,36 +20,46 @@ export function OfferCard({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group flex w-full items-center justify-between gap-6 rounded-3xl border p-7 text-left transition duration-300 ${
+      className={`group flex w-full items-center justify-between gap-3 rounded-xl border-2 py-2 px-3 text-left transition-all duration-200 ${
         selected
-          ? 'border-gold bg-ink-raised shadow-gold'
-          : 'border-line bg-ink-soft hover:-translate-y-0.5 hover:border-gold/50'
+          ? 'border-[#eab308] bg-[#eab308]/5 shadow-sm'
+          : 'border-gray-200 bg-white hover:border-[#eab308]/50 hover:bg-gray-50'
       }`}
     >
-      <div>
-        <p className="text-[10px] uppercase tracking-[0.3em] text-gold">{category}</p>
-        <h3 className="mt-3 text-2xl">{offer.name}</h3>
-        {offer.price.discount > 0 && (
-          <p className="mt-2 text-xs text-gold/90">Round-trip discount applied: {money(offer.price.discount)}</p>
-        )}
+      <div className="flex items-center gap-3 flex-1">
+        <div className="h-10 w-20 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+          <Car className="text-gray-400" size={24} />
+        </div>
+
+        <div className="flex flex-col">
+          <p className="text-[9px] uppercase tracking-wider text-gray-500 font-semibold mb-0.5">{category}</p>
+          <h3 className="text-sm font-serif font-bold text-[#0f172a] leading-tight">{offer.name}</h3>
+          
+          {offer.price.discount > 0 && (
+            <p className="mt-0.5 text-[9px] text-[#eab308] font-semibold">Discount: {money(offer.price.discount)}</p>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 shrink-0">
         <div className="text-right">
-          <p className="font-serif text-3xl text-gold">{money(total)}</p>
-          <p className="mt-1 text-xs text-mute">
+          <p className="font-serif text-lg font-bold text-[#0f172a] leading-none">{money(total)}</p>
+          <p className="mt-0.5 text-[8px] text-gray-400">
             {offer.vat.included
               ? `incl. VAT ${vatPercent}%`
               : `plus VAT ${vatPercent}%`}
           </p>
         </div>
+        
         <span
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition ${
-            selected ? 'border-gold bg-gold-gradient text-ink' : 'border-line text-transparent group-hover:border-gold/60'
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+            selected 
+              ? 'border-[#eab308] bg-[#eab308] text-white' 
+              : 'border-gray-300 text-transparent group-hover:border-gray-400'
           }`}
           aria-hidden="true"
         >
-          <Check size={16} />
+          <Check size={10} strokeWidth={3} />
         </span>
       </div>
     </button>

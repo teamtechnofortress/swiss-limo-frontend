@@ -25,9 +25,8 @@ export function Header({ site }: { site: SiteSettings }) {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0d1b2a] shadow-lg">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-betweenpx-4 sm:px-6 lg:px-8">
         
-        {/* LOGO SECTION */}
         <Link href="/" className="group flex min-h-11 items-center" aria-label={`${site.name} home`}>
           {site.logoUrl && (
             <span className="block h-12 w-40 sm:w-48">
@@ -71,10 +70,8 @@ export function Header({ site }: { site: SiteSettings }) {
           })}
         </nav>
 
-        {/* RIGHT SIDE: Language, CTA, Mobile Toggle */}
         <div className="flex items-center gap-5">
           
-        {/* Language Switcher */}
         <div className="relative hidden items-center gap-1.5 text-[12px] font-semibold text-white/90 md:flex">
           <span className="flex h-4 w-6 overflow-hidden rounded-sm">
             <svg viewBox="0 0 32 32" className="h-full w-full">
@@ -100,7 +97,6 @@ export function Header({ site }: { site: SiteSettings }) {
             Book Your Ride <ArrowRight size={16} strokeWidth={2.5} className="ml-1" />
           </Link>
 
-          {/* Mobile Hamburger */}
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
@@ -113,7 +109,6 @@ export function Header({ site }: { site: SiteSettings }) {
         </div>
       </div>
 
-      {/* MOBILE MENU */}
       {open && (
         <div className="absolute left-0 top-full w-full border-t border-white/10 bg-[#0d1b2a] shadow-xl lg:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col px-6 py-4" aria-label="Mobile">
