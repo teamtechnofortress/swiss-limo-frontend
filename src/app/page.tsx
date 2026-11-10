@@ -66,9 +66,6 @@ export default async function HomePage() {
             
             <div className="flex items-start gap-4">
               <span className="mt-1 h-auto min-h-[40px] w-px shrink-0 bg-gray-400/60" />
-              <p className="max-w-sm text-[13px] leading-relaxed text-gray-600 text-justify">
-                Premium transportation tailored to your travel needs in Switzerland. From airport pickups to private tours, we ensure a comfortable and reliable journey.
-              </p>
             </div>
           </div>
 
@@ -181,8 +178,8 @@ export default async function HomePage() {
           {/* --- OUR LUXURY FLEET --- */}
       <section className="relative overflow-hidden bg-[#f8f3e9] pt-8 pb-12 md:pt-12 md:pb-16">
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.15] pointer-events-none scale-105"
-          style={{ backgroundImage: `url('/images/home/herofinal.png')` }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat  pointer-events-none scale-105"
+          style={{ backgroundImage: `url('/images/home/homepage_fleet_background.png')` }}
           aria-hidden="true"
         />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#f8f3e9]/60 via-transparent to-[#f8f3e9]/90 pointer-events-none" aria-hidden="true" />
@@ -202,9 +199,6 @@ export default async function HomePage() {
             </div>
             
             <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
-              <p className="max-w-xs text-[13px] leading-relaxed text-gray-600">
-                Choose the perfect vehicle for your journey.
-              </p>
               
               <Link 
                 href="/fleet" 

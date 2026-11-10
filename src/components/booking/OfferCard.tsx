@@ -20,18 +20,28 @@ export function OfferCard({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group flex w-full flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border-2 p-3 sm:p-5 text-left transition-all duration-200 ${
+      className={`group flex w-full items-stretch justify-between overflow-hidden rounded-xl border-2 text-left transition-all duration-200 ${
         selected
           ? 'border-[#eab308] bg-[#eab308]/5 shadow-sm'
           : 'border-gray-200 bg-white hover:border-[#eab308]/50 hover:bg-gray-50'
       }`}
     >
-      <div className="flex items-center gap-3 sm:gap-5 flex-1 min-w-0">
-        <div className="h-20 w-28 sm:h-28 sm:w-44 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-          <Car className="text-gray-400" size={28} />
+      <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-5">
+        <div className="w-28 self-stretch shrink-0 overflow-hidden bg-gray-100 sm:w-44">
+          {offer.thumbnail_url ? (
+            <img
+              src={offer.thumbnail_url}
+              alt={offer.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <Car className="text-gray-400" size={28} aria-hidden="true" />
+            </div>
+          )}
         </div>
 
-        <div className="flex flex-col min-w-0">
+        <div className="flex min-w-0 flex-col py-3 sm:py-5">
           <p className="text-[10px] sm:text-[12px] uppercase tracking-wider text-gray-500 font-semibold mb-1">{category}</p>
           <h3 className="text-base sm:text-xl font-serif font-bold text-[#0f172a] leading-tight truncate">{offer.name}</h3>
           
@@ -41,7 +51,7 @@ export function OfferCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-5 shrink-0 border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0 mt-1 sm:mt-0 sm:pl-4">
+      <div className="flex shrink-0 items-center justify-between gap-3 px-3 py-3 sm:gap-5 sm:px-5 sm:py-5">
         <div className="text-left sm:text-right">
           <p className="font-serif text-xl sm:text-3xl font-bold text-[#0f172a] leading-none">{money(total)}</p>
           <p className="mt-1 text-[9px] sm:text-[11px] text-gray-400">

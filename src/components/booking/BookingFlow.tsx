@@ -355,7 +355,6 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
                   Choose Your Vehicle
                 </h2>
-                <p className="text-[10px] sm:text-xs text-gray-400">Quote valid until {formatDateTime(quote.expires_at)}</p>
               </div>
             </div>
 

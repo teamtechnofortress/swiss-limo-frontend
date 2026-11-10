@@ -66,6 +66,8 @@ export interface QuoteOffer {
   slug?: string;
   name: string;
   category: VehicleCategory | string;
+  /** Vehicle cover image prepared by the quotes API; absent when no fleet image exists. */
+  thumbnail_url: string | null;
   price: { legs: Record<string, number>; discount: number; subtotal: number };
   vat: { net: number; vat: number; gross: number; rate_bp: number; included: boolean };
 }
