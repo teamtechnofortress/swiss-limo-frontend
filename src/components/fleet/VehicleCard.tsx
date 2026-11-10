@@ -43,7 +43,6 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </h3>
         </div>
 
-        {/* Passenger & Luggage Info - Reduced margin */}
         <div className="mt-1.5 flex items-center gap-4 text-[10px] font-medium text-black">
           <span className="inline-flex items-center gap-1.5">
             <Users size={13} className="text-[#d38b12]" />
@@ -55,7 +54,6 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </span>
         </div>
 
-        {/* Price & Arrow Button - Reduced margin and padding */}
         <div className="mt-3 flex items-end justify-between border-t border-gray-100 pt-2">
           <div>
             <p className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500">From</p>
@@ -64,7 +62,6 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             </p>
           </div>
           
-          {/* Gold Arrow Button - Slightly smaller */}
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f1c75b] text-black transition group-hover:bg-[#e0b54a]">
             <ArrowRight size={14} strokeWidth={2.5} />
           </div>

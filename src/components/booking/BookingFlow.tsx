@@ -33,7 +33,7 @@ const STEPS = [
 ] as const;
 
 const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
-const lightLabel = "mb-1 block text-[11px] font-bold uppercase tracking-wider text-[#0f172a]";
+const lightLabel = "mb-1 block text-[11px]  uppercase tracking-wider text-[#0f172a]";
 
 function messageOf(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
@@ -196,12 +196,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12 items-start">
-      <div className="lg:col-span-8">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 items-start min-w-0 w-full max-w-full">
+      <div className="lg:col-span-8 min-w-0 w-full max-w-full">
         
-        <div className="mb-4 rounded-2xl bg-white px-4 md:px-8 py-2 border-2 border-gray-200 shadow-sm">
-          <ol className="flex items-center justify-between min-w-[400px]" aria-label="Booking steps">
-            {flowSteps.map(({ step: stepNumber, label }, index) => {
+<div className="mb-4 rounded-2xl bg-white px-2 md:px-8 py-2 border-2 border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+  <ol className="flex items-center justify-between w-full" aria-label="Booking steps">
+             {flowSteps.map(({ step: stepNumber, label }, index) => {
               const done = step > stepNumber;
               const current = step === stepNumber;
 
@@ -239,21 +239,21 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
 
         {step === 1 && (
-          <div className="rounded-2xl bg-white p-5 md:p-6 border-2 border-gray-200 shadow-xl">
+          <div className="rounded-2xl bg-white p-4 md:p-6 border-2 border-gray-200 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)]">
             
             <div className="mb-4">
-              <p className="text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
+              <p className="text-[14px] md:text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
                 Step 1 of 4
               </p>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
+              <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
                 Plan Your Journey
               </h2>
             </div>
             
-            <form onSubmit={findVehicles} className="space-y-1">
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
+            <form onSubmit={findVehicles} className="space-y-3 md:space-y-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0 w-full">
+                
+                <div className="min-w-0 w-full max-w-full">
                   <label className={lightLabel}>Pickup</label>
                   <PlaceField
                     id="pickup"
@@ -264,7 +264,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                     googleBrowserKey={googleBrowserKey}
                   />
                 </div>
-                <div>
+                <div className="min-w-0 w-full max-w-full">
                   <label className={lightLabel}>Destination</label>
                   <PlaceField
                     id="dropoff"
@@ -277,7 +277,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
                   <label className={lightLabel}>Date</label>
                   <input type="date" className={lightInput} value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
@@ -317,7 +317,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               </div>
 
               {roundTrip && (
-                <div className="grid grid-cols-2 gap-3 pb-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-1">
                   <div>
                     <label className={lightLabel}>Return date</label>
                     <input type="date" className={lightInput} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required />
@@ -333,8 +333,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
               </div>
 
-              <div className="flex justify-center w-full relative z-10">
-                <button type="submit" disabled={busy} className="flex w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-8 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50">
+              <div className="flex justify-center w-full relative z-10 pt-4 md:pt-0">
+                <button type="submit" disabled={busy} className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-8 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50">
                   {busy ? 'Checking availability…' : 'Continue to choose vehicle'}
                   {!busy && <ArrowRight size={16} />}
                 </button>
@@ -343,25 +343,23 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </div>
         )}
 
-        {step === 2 && quote && (
-          <div className="rounded-2xl bg-white p-4 md:p-5 border-2 border-gray-200 shadow-xl flex flex-col max-h-[calc(100vh-180px)]">
+                {step === 2 && quote && (
+          <div className="rounded-2xl bg-white p-4 md:p-6 border-2 border-gray-200 shadow-xl">
             
             <div className="mb-4">
-              <p className="text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
+              <p className="text-[14px] md:text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
                 Step 2 of 4
               </p>
-              <div className="flex items-center justify-between">
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
+              
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
                   Choose Your Vehicle
                 </h2>
-                <p className="text-xs text-gray-400">Quote valid until {formatDateTime(quote.expires_at)}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400">Quote valid until {formatDateTime(quote.expires_at)}</p>
               </div>
             </div>
 
-            <div 
-              className="space-y-2.5 overflow-y-auto pr-2 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-400"
-              style={{ maxHeight: '220px' }}
-            >
+            <div className="space-y-3 pb-2">
               {offers.map((offer) => (
                 <OfferCard
                   key={offer.vehicle_id}
@@ -376,7 +374,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2 text-sm font-bold text-black hover:bg-gray-50 transition-all"
+                className="flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-black hover:bg-gray-50 transition-all w-full sm:w-auto"
               >
                 <ArrowLeft size={16} /> Change journey
               </button>
@@ -384,7 +382,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 type="button"
                 disabled={!selected}
                 onClick={() => setStep(3)}
-                className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
               >
                 Continue <ArrowRight size={16} />
               </button>
@@ -411,8 +409,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </div>
         )}
 
-               {step === 4 && quote && selected && (
-          <div className="rounded-2xl bg-white p-4 md:p-5 border-2 border-gray-200 shadow-xl">
+        {step === 4 && quote && selected && (
+          <div className="rounded-2xl bg-white p-4 md:p-5 border border-gray-300 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.25)]">
             <div className="mb-4">
               <p className="text-[14px] font-bold text-[#eab308] tracking-wider mb-0.5">
                 Step 4 of 4
@@ -428,7 +426,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
                 {/* Journey Details */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-white">
+                <div className="rounded-xl border border-gray-200 p-3 bg-white shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-[11px] font-black uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><MapPin size={12} /> Journey Details</h3>
                     <button type="button" onClick={() => setStep(1)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
@@ -443,7 +441,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
 
                 {/* Selected Vehicle */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-white">
+                <div className="rounded-xl border border-gray-200 p-3 bg-white shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Car size={12} /> Selected Vehicle</h3>
                     <button type="button" onClick={() => setStep(2)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
@@ -462,7 +460,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
 
                 {/* Your Details */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-white">
+                <div className="rounded-xl border border-gray-200 p-3 bg-white shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Users size={12} /> Your Details</h3>
                     <button type="button" onClick={() => setStep(3)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
@@ -476,7 +474,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
 
                 {/* Price Summary */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50">
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
                   <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5 mb-2"><FileText size={12} /> Price Summary</h3>
                   <div className="space-y-1.5 text-xs mb-2">
                     <div className="flex justify-between">
@@ -520,8 +518,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
       </div>
 
-      <aside className="lg:col-span-4 mt-4 lg:mt-16 sticky top-24">
-        <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-xl overflow-hidden">
+      <aside className="lg:col-span-4 mt-4 lg:mt-[77px] sticky top-24">
+        <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-xl   shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)] overflow-hidden">
           
           <div className="bg-[#0f172a] px-4 py-2.5 flex items-center gap-2">
             {step === 4 ? <ShieldCheck className="text-[#eab308]" size={18} /> : <ClipboardList className="text-[#eab308]" size={18} />}
@@ -617,14 +615,14 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-white border-2 border-gray-200 shadow-xl p-4">
+        <div className="mt-4 rounded-2xl bg-white border-2 border-gray-200 shadow-xl p-4  shadow-[0_15px_40px_-10px_rgba(0,0,0,0.25)]">
           <div className="flex items-center gap-2 mb-2">
             <div className="text-[#eab308]">
               <ShieldCheck size={20} />
             </div>
             <h3 className="text-lg font-serif text-[#0f172a] font-bold">Need Help?</h3>
           </div>
-          <p className="text-xs text-gray-500 mb-3">Our team is here to assist you with your booking, special requests or custom travel plans.</p>
+          <p className="text-xs text-[#0f172a] mb-3">Our team is here to assist you with your booking, special requests or custom travel plans.</p>
           <div className="flex gap-2">
             <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Phone size={12}/> +41 79 123 45 67</button>
             <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Mail size={12}/> Chat</button>
@@ -646,9 +644,9 @@ function SidebarRow({ icon, label, value }: { icon: React.ReactNode; label: stri
       <div className="text-[#0f172a] mt-0.5 shrink-0 w-4 flex justify-center">
         {icon}
       </div>
-      <div className="flex-1 grid grid-cols-[70px_1fr] gap-2 items-baseline">
-        <p className="text-[9px] uppercase tracking-wider text-gray-500">{label}</p>
-        <p className="text-xs font-bold text-[#0f172a] leading-snug truncate">{value}</p>
+      <div className="flex-1 flex items-center justify-between gap-2">
+        <p className="text-[10px] uppercase tracking-wider text-[#0f172a]">{label}</p>
+        <p className="text-xs font-bold text-[#0f172a] whitespace-nowrap overflow-hidden text-ellipsis leading-[1.6]">{value}</p>
       </div>
     </div>
   );

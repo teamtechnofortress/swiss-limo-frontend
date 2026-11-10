@@ -25,7 +25,7 @@ export function Header({ site }: { site: SiteSettings }) {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0d1b2a] shadow-lg">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-betweenpx-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         <Link href="/" className="group flex min-h-11 items-center" aria-label={`${site.name} home`}>
           {site.logoUrl && (

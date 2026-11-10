@@ -23,12 +23,12 @@ export function PlaceField({
   placeholder, 
   initialQuery, 
   googleBrowserKey,
-  className = "w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]",
-  icon = <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+  className = "w-full min-w-0 truncate rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] !font-normal text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]",  icon = <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
 }: PlaceFieldProps) {
   const [text, setText] = useState(value?.text ?? initialQuery ?? '');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [open, setOpen] = useState(false);
+  const [hasUserEdited, setHasUserEdited] = useState(false);
   const session = useRef('');
   const resolved = useRef(false);
 
@@ -54,34 +54,55 @@ export function PlaceField({
       .catch(() => undefined);
   }, [googleBrowserKey, initialQuery, value, onChange]);
 
+
   useEffect(() => {
-    if (value && value.text === text) return;
-    if (text.trim().length < 3) {
-      setSuggestions([]);
-      return;
-    }
+  // Do not show suggestions for automatically prefilled addresses.
+  if (!hasUserEdited) {
+    setSuggestions([]);
+    setOpen(false);
+    return;
+  }
 
-    if (!googleBrowserKey) {
-      setSuggestions([]);
-      return;
-    }
+  if (value && value.text === text) {
+    setSuggestions([]);
+    setOpen(false);
+    return;
+  }
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => {
-      autocompletePlaces(text, session.current, googleBrowserKey, controller.signal)
-        .then((list) => {
-          setSuggestions(list);
-          setOpen(true);
-        })
-        .catch(() => undefined);
-    }, 250);
+  if (text.trim().length < 3) {
+    setSuggestions([]);
+    setOpen(false);
+    return;
+  }
 
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleBrowserKey, text]);
+  if (!googleBrowserKey) {
+    setSuggestions([]);
+    return;
+  }
+
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => {
+    autocompletePlaces(
+      text,
+      session.current,
+      googleBrowserKey,
+      controller.signal
+    )
+      .then((list) => {
+        setSuggestions(list);
+        setOpen(list.length > 0);
+      })
+      .catch(() => undefined);
+  }, 250);
+
+  return () => {
+    clearTimeout(timer);
+    controller.abort();
+  };
+}, [googleBrowserKey, text, hasUserEdited, value]);
+
+
 
   function choose(suggestion: PlaceSuggestion) {
     onChange({ placeId: suggestion.placeId, text: suggestion.text });
@@ -91,8 +112,8 @@ export function PlaceField({
   }
 
   return (
-    <div className="relative">
-      <div className="relative">
+    <div className="relative w-full min-w-0">
+      <div className="relative w-full min-w-0">
         {icon}
         <input
           id={id}
@@ -100,10 +121,11 @@ export function PlaceField({
           aria-expanded={open && suggestions.length > 0}
           aria-autocomplete="list"
           autoComplete="off"
-          className={className}
+          className={`${className} min-w-0 w-full max-w-full`}
           placeholder={placeholder}
           value={text}
           onChange={(e) => {
+            setHasUserEdited(true);
             setText(e.target.value);
             if (value) onChange(null);
           }}

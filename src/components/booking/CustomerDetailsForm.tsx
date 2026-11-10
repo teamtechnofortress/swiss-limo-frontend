@@ -22,7 +22,7 @@ export interface CustomerDetails {
   phone: string;
 }
 
-const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
+const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm !font-normal text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
 const lightLabel = "mb-1 block text-[11px] font-bold uppercase tracking-wider text-[#0f172a]";
 
 export function CustomerDetailsForm({
@@ -96,7 +96,7 @@ export function CustomerDetailsForm({
           {paymentMethods.map((method) => (
             <label 
               key={method} 
-              className={`flex cursor-pointer gap-2.5 rounded-xl border-2 p-2 transition ${
+              className={`flex cursor-pointer gap-2.5 rounded-xl border-2 p-3 transition ${
                 payment === method 
                   ? 'border-[#eab308] bg-[#eab308]/5' 
                   : 'border-gray-200 bg-white hover:border-gray-300'
@@ -134,7 +134,7 @@ export function CustomerDetailsForm({
         <button
           type="submit"
           disabled={busy}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-1.5 text-xs font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
+          className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2.5 text-xs font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
         >
           {busy ? 'Please wait…' : 'Continue to Review & Book'} 
           {!busy && <ArrowRight size={14} />}
