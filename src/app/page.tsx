@@ -4,7 +4,7 @@ import { VehicleCard } from '@/components/fleet/VehicleCard';
 import { ButtonLink, Card, Container, Eyebrow, GoldRule, Section, SectionHeading } from '@/components/ui/primitives';
 import { TripCard } from '@/components/trips/TripCard';
 import { getVehicles } from '@/lib/fleet';
-import { getTrips } from '@/lib/trips';
+import { getFeaturedTrips } from '@/lib/trips';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TripCarousel } from '@/components/home/TripCarousel';
@@ -23,9 +23,9 @@ const STEPS = [
 ];
 
 export default async function HomePage() {
-  const [vehicles, trips] = await Promise.all([
+  const [vehicles, featuredTrips] = await Promise.all([
     getVehicles().then((items) => items.slice(0, 3)),
-    getTrips({ featured: true, perPage: 3 }).catch(() => null),
+    getFeaturedTrips().catch(() => []),
   ]);
 
   return (
@@ -173,7 +173,7 @@ export default async function HomePage() {
       </section>
       
         {/* --- FEATURED DAY TRIPS & TOURS --- */}
- <TripCarousel trips={trips} />
+      {featuredTrips.length > 0 && <TripCarousel trips={featuredTrips} />}
 
           {/* --- OUR LUXURY FLEET --- */}
       <section className="relative overflow-hidden bg-[#f8f3e9] pt-8 pb-12 md:pt-12 md:pb-16">

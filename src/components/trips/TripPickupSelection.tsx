@@ -193,7 +193,7 @@ export function TripPickupSelection({
             onProceedToDetails={() => setActiveStep(4)}
             onReturnToJourney={() => setActiveStep(2)}
             onReturnToVehicles={() => setActiveStep(3)}
-            enquiryHref={`/contact?trip=${encodeURIComponent(trip.slug)}`}
+            enquiryHref={`/contact?type=trip&trip=${encodeURIComponent(trip.slug)}`}
           />
         )}
       </div>

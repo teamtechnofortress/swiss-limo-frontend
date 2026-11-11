@@ -13,7 +13,8 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   return (
     <Link
       href={`/fleet/${vehicle.slug}`}
-      className="group relative flex flex-col overflow-hidden rounded-xl border border-black/5 bg-white shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="group relative flex flex-col overflow-hidden rounded-xl border border-white/80 bg-[linear-gradient(180deg,#cad0e8_0%,#e4e8f4_58%,#fafbfe_100%)] transition duration-300 hover:-translate-y-1 hover:border-white"
+      style={{ boxShadow: '0 12px 28px -14px rgba(15, 31, 56, 0.62), 3px 3px 6px rgba(13, 27, 42, 0.28)' }}
     >
       
       <div className="relative aspect-[16/9] w-full overflow-hidden bg-gray-50">
@@ -54,7 +55,7 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           </span>
         </div>
 
-        <div className="mt-3 flex items-end justify-between border-t border-gray-100 pt-2">
+        <div className="mt-3 flex items-end justify-between border-t border-[#b8c2dd]/60 pt-2">
           <div>
             <p className="text-[8px] font-bold uppercase tracking-[0.1em] text-gray-500">From</p>
             <p className="mt-0.5 font-sans text-[13px] font-bold text-black">

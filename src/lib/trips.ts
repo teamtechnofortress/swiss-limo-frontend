@@ -30,6 +30,24 @@ export interface TripPage {
   };
 }
 
+/** The lightweight public payload used by the homepage featured-trip carousel. */
+export interface FeaturedTrip {
+  slug: string;
+  title: string;
+  subtitle: string;
+  summary: string;
+  descriptionHtml: string | null;
+  region: string;
+  pricingMode: TripPricingMode;
+  startingFromPriceMinor: number | null;
+  /** Small, efficient image for the carousel's thumbnail rail. */
+  thumbnailUrl: string | null;
+  /** Full-resolution image for the animated full-bleed carousel backdrop. */
+  originalCoverUrl: string | null;
+  /** Legacy full-resolution cover; retained as a safe image fallback. */
+  coverUrl: string | null;
+}
+
 export interface TripGalleryImage {
   id: number;
   url: string;
@@ -113,6 +131,20 @@ interface ApiTripDetailData {
   booking?: unknown;
 }
 
+interface ApiFeaturedTrip {
+  slug?: unknown;
+  title?: unknown;
+  subtitle?: unknown;
+  summary?: unknown;
+  description_html?: unknown;
+  region?: unknown;
+  pricing_mode?: unknown;
+  starting_from_price_minor?: unknown;
+  thumbnail_url?: unknown;
+  original_cover_url?: unknown;
+  cover_url?: unknown;
+}
+
 const pricingModes = new Set<TripPricingMode>(['fixed', 'distance', 'enquiry']);
 const bookingModes = new Set<TripBookingMode>(['online', 'enquiry']);
 const blockedBookingReasons = new Set<TripBookingBlockedReason>([
@@ -167,6 +199,50 @@ function tripFromApi(value: unknown): Trip | null {
     pricingMode,
     bookingMode: bookingModeFromApi(trip.booking_mode, pricingMode),
     startingFromPriceMinor: startingPriceFromApi(trip.starting_from_price_minor, pricingMode),
+  };
+}
+
+function urlOrNull(value: unknown): string | null | undefined {
+  if (value === null || value === undefined) return null;
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined;
+}
+
+function featuredTripFromApi(value: unknown): FeaturedTrip | null {
+  if (typeof value !== 'object' || value === null) return null;
+
+  const trip = value as ApiFeaturedTrip;
+  const pricingMode = trip.pricing_mode as TripPricingMode;
+  const startingFromPriceMinor = priceMinorFromApi(trip.starting_from_price_minor);
+  const thumbnailUrl = urlOrNull(trip.thumbnail_url);
+  const originalCoverUrl = urlOrNull(trip.original_cover_url);
+  const coverUrl = urlOrNull(trip.cover_url);
+
+  if (
+    typeof trip.slug !== 'string' ||
+    typeof trip.title !== 'string' ||
+    typeof trip.subtitle !== 'string' ||
+    typeof trip.summary !== 'string' ||
+    typeof trip.region !== 'string' ||
+    !pricingModes.has(pricingMode) ||
+    startingFromPriceMinor === undefined ||
+    thumbnailUrl === undefined ||
+    originalCoverUrl === undefined ||
+    coverUrl === undefined ||
+    (trip.description_html !== undefined && trip.description_html !== null && typeof trip.description_html !== 'string')
+  ) return null;
+
+  return {
+    slug: trip.slug,
+    title: trip.title,
+    subtitle: trip.subtitle,
+    summary: trip.summary,
+    descriptionHtml: typeof trip.description_html === 'string' ? trip.description_html : null,
+    region: trip.region,
+    pricingMode,
+    startingFromPriceMinor: pricingMode === 'fixed' ? startingFromPriceMinor : null,
+    thumbnailUrl,
+    originalCoverUrl,
+    coverUrl,
   };
 }
 
@@ -356,6 +432,14 @@ export async function getTrips(filters: TripFilters = {}): Promise<TripPage> {
       lastPage: positiveInteger(response.meta?.last_page, 1),
     },
   };
+}
+
+/** Retrieves the CMS-managed trips selected for the homepage. */
+export async function getFeaturedTrips(): Promise<FeaturedTrip[]> {
+  const response = await api<{ data?: unknown }>('/public/trips/featured', { cache: 'no-store' });
+  return Array.isArray(response.data)
+    ? response.data.map(featuredTripFromApi).filter((trip): trip is FeaturedTrip => trip !== null)
+    : [];
 }
 
 /** Retrieves the published content for one trip's public page. */

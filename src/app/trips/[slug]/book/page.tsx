@@ -31,7 +31,7 @@ export default async function TripBookingPage({ params }: { params: Params }) {
 
   if (!trip) notFound();
 
-  const enquiryHref = `/contact?trip=${encodeURIComponent(trip.slug)}`;
+  const enquiryHref = `/contact?type=trip&trip=${encodeURIComponent(trip.slug)}`;
   if (!trip.booking.startBookingAllowed || trip.pricingMode === 'enquiry') redirect(enquiryHref);
 
   let pickupConfig;

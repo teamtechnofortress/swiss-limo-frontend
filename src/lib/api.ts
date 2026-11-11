@@ -5,6 +5,8 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    /** Laravel's optional 422 field errors, keyed by request field. */
+    public readonly fieldErrors: Record<string, string[]> = {},
   ) {
     super(message);
   }
@@ -46,7 +48,18 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     const code = json?.error?.code ?? 'error';
     const message =
       json?.error?.message ?? json?.message ?? 'Something went wrong. Please try again.';
-    throw new ApiError(res.status, code, message);
+    const fieldErrors =
+      json?.errors && typeof json.errors === 'object'
+        ? Object.fromEntries(
+            Object.entries(json.errors).flatMap(([field, messages]) =>
+              Array.isArray(messages) && messages.every((item) => typeof item === 'string')
+                ? [[field, messages] as const]
+                : [],
+            ),
+          )
+        : {};
+
+    throw new ApiError(res.status, code, message, fieldErrors);
   }
 
   return json as T;

@@ -95,7 +95,7 @@ export default async function VehiclePage({ params }: { params: Params }) {
                 Book this vehicle
               </ButtonLink>
             ) : (
-              <ButtonLink href={`/contact?vehicle=${vehicle.slug}`} variant="outline" className="w-full">
+              <ButtonLink href={`/contact?type=vehicle&vehicle=${encodeURIComponent(vehicle.slug)}`} variant="outline" className="w-full">
                 Request a price
               </ButtonLink>
             )}

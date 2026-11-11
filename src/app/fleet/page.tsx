@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { VehicleCard } from '@/components/fleet/VehicleCard';
 import { CategoryTabs } from '@/components/fleet/CategoryTabs';
-import { Container, Section, SectionHeading } from '@/components/ui/primitives';
+import { Container } from '@/components/ui/primitives';
 import { getVehicles } from '@/lib/fleet';
 
 export const metadata: Metadata = {
@@ -21,28 +21,35 @@ export default async function FleetPage({
   const vehicles = await getVehicles(active || undefined);
 
   return (
-    <Section className="pt-20 md:pt-28">
-      <Container>
-        <SectionHeading
-          eyebrow="The fleet"
-          title="Choose the car that fits your journey"
-          subtitle="Every vehicle is immaculately kept and driven by a professional chauffeur. Prices are per kilometre, with a minimum fare for shorter trips."
-        />
+    <main className="min-h-screen bg-[#f8f9fa] pb-20 text-[#0d1b2a] md:pb-28">
+      <Container className="pt-14 md:pt-20">
+        <section className="max-w-3xl">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="h-[3px] w-7 bg-[#f1c75b]" />
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#40516b]">Our fleet</p>
+          </div>
+          <h1 className="font-serif text-4xl font-bold leading-[1.02] text-[#0d1b2a] md:text-5xl">Our Luxury Fleet</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-600 md:text-base">Travel in comfort with a carefully selected fleet of executive saloons and spacious vans, maintained to an exceptional standard.</p>
+        </section>
 
-        <div className="mt-14">
+        <div className="mt-10 flex flex-col gap-4 border-y border-slate-200 py-5 md:mt-12 md:flex-row md:items-center md:justify-between">
           <CategoryTabs active={active} />
+          <p className="text-[12px] font-medium text-slate-500"><span className="font-bold text-[#0d1b2a]">{vehicles.length}</span> {vehicles.length === 1 ? 'vehicle' : 'vehicles'} available</p>
         </div>
 
         {vehicles.length === 0 ? (
-          <p className="mt-20 text-mute">No vehicles are available in this category right now.</p>
+          <div className="py-20 text-center">
+            <p className="font-serif text-3xl font-bold text-[#0d1b2a]">No vehicles available in this category</p>
+            <p className="mt-3 text-sm text-slate-500">Please select another category to view our fleet.</p>
+          </div>
         ) : (
-          <div className="mt-14 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3 lg:gap-6">
             {vehicles.map((vehicle) => (
               <VehicleCard key={vehicle.slug} vehicle={vehicle} />
             ))}
           </div>
         )}
       </Container>
-    </Section>
+    </main>
   );
 }

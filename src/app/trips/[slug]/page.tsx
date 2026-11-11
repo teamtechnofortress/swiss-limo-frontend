@@ -51,7 +51,7 @@ export default async function TripPage({ params }: { params: Params }) {
   const gallery = trip.gallery.slice(0, 3);
   const hasGallery = gallery.length > 0;
   const canStartBooking = trip.booking.startBookingAllowed && trip.pricingMode !== 'enquiry';
-  const enquiryHref = `/contact?trip=${encodeURIComponent(trip.slug)}`;
+  const enquiryHref = `/contact?type=trip&trip=${encodeURIComponent(trip.slug)}`;
   const startingPrice = trip.pricingMode === 'fixed' ? trip.booking.startingFromPriceMinor : null;
   const departureLocations = trip.booking.pickupLocationsOnly ? trip.booking.departureLocations : [];
 

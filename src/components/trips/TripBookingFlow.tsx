@@ -54,7 +54,7 @@ function travellerLimitLabel(minimum: number, maximum: number): string {
 export function TripBookingFlow({ config }: { config: TripBookingConfig }) {
   const router = useRouter();
   const { booking, trip } = config;
-  const enquiryHref = `/contact?trip=${encodeURIComponent(trip.slug)}`;
+  const enquiryHref = `/contact?type=trip&trip=${encodeURIComponent(trip.slug)}`;
   const [step, setStep] = useState(1);
   const [pickupId, setPickupId] = useState<number | null>(booking.pickup.locations[0]?.id ?? null);
   const [customPickup, setCustomPickup] = useState<PlaceValue | null>(null);
