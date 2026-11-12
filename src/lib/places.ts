@@ -1,4 +1,4 @@
-import { config } from './config';
+import { fallbackPublicConfig, getPublicConfig, type PublicConfig } from './public-config';
 
 export interface PlaceSuggestion {
   placeId: string;
@@ -11,8 +11,22 @@ interface AutocompleteResponse {
   }>;
 }
 
+// Share config requests across address fields and refresh after one minute.
+let serviceAreaRequest: Promise<PublicConfig['serviceArea']> | undefined;
+let serviceAreaExpiresAt = 0;
+
+function getServiceArea(): Promise<PublicConfig['serviceArea']> {
+  if (!serviceAreaRequest || Date.now() >= serviceAreaExpiresAt) {
+    serviceAreaExpiresAt = Date.now() + 60_000;
+    serviceAreaRequest = getPublicConfig()
+      .then((publicConfig) => publicConfig.serviceArea)
+      .catch(() => fallbackPublicConfig().serviceArea);
+  }
+  return serviceAreaRequest;
+}
+
 /**
- * Address suggestions from Google Places API (New), restricted to the allowed countries.
+ * Address suggestions from Google Places API (New), restricted by the public service-area config, with local fallback countries.
  * Returns an empty list when no browser key is set, so the form can still show a clear message.
  */
 export async function autocompletePlaces(
@@ -28,6 +42,9 @@ export async function autocompletePlaces(
     return [];
   }
 
+  const serviceArea = await getServiceArea();
+  signal?.throwIfAborted();
+
   const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
     method: 'POST',
     signal,
@@ -37,7 +54,7 @@ export async function autocompletePlaces(
     },
     body: JSON.stringify({
       input,
-      includedRegionCodes: config.placeRegions,
+      ...(serviceArea.enforced ? { includedRegionCodes: serviceArea.allowedCountries } : {}),
       sessionToken,
     }),
   });

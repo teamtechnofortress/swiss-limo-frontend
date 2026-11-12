@@ -219,7 +219,6 @@ export default async function HomePage() {
       </section>
 
 
-           {/* --- WHY CHOOSE US --- */}
  <section className="relative bg-[#071e32] py-4 text-white">
   <Container className="flex flex-col items-center justify-between gap-6 md:flex-row"> 
     <h2 className="font-serif text-2xl font-bold whitespace-nowrap md:text-4xl">
@@ -282,7 +281,6 @@ export default async function HomePage() {
             </p>
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-wrap items-center gap-3">
             <ButtonLink 
               href="/contact" 

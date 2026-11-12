@@ -445,14 +445,24 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                     <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Car size={12} /> Selected Vehicle</h3>
                     <button type="button" onClick={() => setStep(2)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
                   </div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-10 w-16 bg-gray-100 rounded flex items-center justify-center"><Car className="text-gray-400" size={20} /></div>
+
+                  <div className="flex flex-col items-center justify-center gap-2 mb-2 text-center">
+                    {selected.thumbnail_url ? (
+                      <div className="h-12 w-15 rounded overflow-hidden shrink-0 mx-auto">
+                        <img src={selected.thumbnail_url} alt={selected.name} className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-10 w-16 bg-gray-100 rounded flex items-center justify-center shrink-0">
+                        <Car className="text-gray-400" size={24} />
+                      </div>
+                    )}
                     <div>
-                      <p className="font-serif font-bold text-xs text-[#0f172a]">{selected.name}</p>
+                      <p className="font-serif font-bold text-xs text-[#0f172a] justify-center">{selected.name}</p>
                       <p className="text-[10px] text-gray-500">{selected.category}</p>
                     </div>
                   </div>
-                  <div className="flex gap-3 text-[10px] text-gray-600 mt-1">
+
+                  <div className="flex justify-center items-center gap-3 text-[10px] text-gray-600 mt-1 w-full">
                     <span className="flex items-center gap-1"><Users size={10} /> {quote.passengers} Passengers</span>
                     <span className="flex items-center gap-1"><Briefcase size={10} /> {bags} Bags</span>
                   </div>

@@ -1,15 +1,18 @@
 import { api } from './api';
 import { config } from './config';
 
-interface PublicConfigResponse {
-  data?: {
-    site?: unknown;
-    google_browser_key?: unknown;
-    google_maps_browser_key?: unknown;
-    currency?: unknown;
-    turnstile_enabled?: unknown;
-    turnstile_site_key?: unknown;
-  };
+interface PublicConfigPayload {
+  service_area?: unknown;
+  site?: unknown;
+  google_browser_key?: unknown;
+  google_maps_browser_key?: unknown;
+  currency?: unknown;
+  turnstile_enabled?: unknown;
+  turnstile_site_key?: unknown;
+}
+
+interface PublicConfigResponse extends PublicConfigPayload {
+  data?: PublicConfigPayload;
 }
 
 export interface SiteSettings {
@@ -23,6 +26,10 @@ export interface SiteSettings {
 }
 
 export interface PublicConfig {
+  serviceArea: {
+    enforced: boolean;
+    allowedCountries: string[];
+  };
   site: SiteSettings;
   googleMapsBrowserKey: string;
   currency: string;
@@ -50,6 +57,7 @@ export function fallbackPublicConfig(): PublicConfig {
         address: null,
       },
     },
+    serviceArea: { enforced: true, allowedCountries: [...config.placeRegions] },
     googleMapsBrowserKey: '',
     currency: 'CHF',
     turnstileEnabled: Boolean(config.turnstileSiteKey),
@@ -62,11 +70,27 @@ export function fallbackPublicConfig(): PublicConfig {
  * website identity, contact information, and booking settings current.
  */
 export async function getPublicConfig(): Promise<PublicConfig> {
-  const { data = {} } = await api<PublicConfigResponse>('/public/config', { cache: 'no-store' });
+  const response = await api<PublicConfigResponse>('/public/config', { cache: 'no-store' });
+  const data = response.data ?? response;
   const site = recordOrNull(data.site);
   const contact = recordOrNull(site?.contact);
+  const serviceArea = recordOrNull(data.service_area);
+  const countries = serviceArea?.allowed_countries;
+  const validCountries = Array.isArray(countries)
+    && countries.length > 0
+    && countries.length <= 15
+    && countries.every((country): country is string =>
+      typeof country === 'string' && /^[a-z]{2}$/i.test(country));
+  const validServiceArea = typeof serviceArea?.enforced === 'boolean'
+    && (serviceArea.enforced === false || validCountries);
 
   return {
+    serviceArea: validServiceArea
+      ? {
+          enforced: serviceArea!.enforced === true,
+          allowedCountries: validCountries ? countries.map((country) => country.toUpperCase()) : [],
+        }
+      : { enforced: true, allowedCountries: [...config.placeRegions] },
     site: {
       name: stringOrNull(site?.name) ?? config.brandName,
       logoUrl: stringOrNull(site?.logo_url),

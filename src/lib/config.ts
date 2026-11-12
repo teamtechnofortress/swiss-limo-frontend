@@ -5,6 +5,7 @@ export const config = {
   /**
    * Laravel API prefix. New deployments supply NEXT_PUBLIC_API_BASE_URL; the
    * legacy API_URL form remains supported for local and existing deployments.
+   * http://192.168.1.12:8000/api
    */
   apiUrl: apiBaseUrl
     ? `${apiBaseUrl}/api`
@@ -13,6 +14,6 @@ export const config = {
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@example.ch',
   contactPhone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '+41 00 000 00 00',
   turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '',
-  /** Countries offered in address search. Must match allowed_countries in the backend. */
+  /** Fallback address-search countries when public service-area settings are unavailable. */
   placeRegions: ['CH', 'DE', 'FR', 'AT', 'IT'],
 } as const;
