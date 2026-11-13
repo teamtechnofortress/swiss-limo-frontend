@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { 
   CheckCircle2, CreditCard, Loader2, ArrowLeft, Calendar, 
   Clock, MapPin, Users, Briefcase, Car, Download, Phone
@@ -25,8 +25,6 @@ export function BookingView({ reference }: { reference: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [paying, setPaying] = useState(false);
-  const [reason, setReason] = useState('');
-  const [cancelSent, setCancelSent] = useState(false);
 
   const load = useCallback(
     async (accessToken: string) => {
@@ -69,7 +67,6 @@ export function BookingView({ reference }: { reference: string }) {
     }
 
     load(accessToken);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey, load]);
 
   useEffect(() => {
@@ -95,22 +92,6 @@ export function BookingView({ reference }: { reference: string }) {
     }
   }
 
-  async function requestCancellation(event: FormEvent) {
-    event.preventDefault();
-    if (!token) return;
-
-    try {
-      await api(`/public/bookings/${reference}/cancel-request`, {
-        method: 'POST',
-        token,
-        body: JSON.stringify({ reason: reason.trim() }),
-      });
-      setCancelSent(true);
-    } catch (e) {
-      setError(messageOf(e));
-    }
-  }
-
   if (loading) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
@@ -133,7 +114,6 @@ export function BookingView({ reference }: { reference: string }) {
     );
   }
 
-  const canCancel = ['confirmed', 'assigned'].includes(booking.status) && !booking.cancellation_requested_at;
   const outbound = booking.legs.find((l) => l.direction === 'outbound') ?? booking.legs[0];
 
   return (
@@ -184,7 +164,6 @@ export function BookingView({ reference }: { reference: string }) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        
         <div className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm">
           <div className="bg-[#0f172a] px-3 py-1.5 flex items-center gap-2">
             <Briefcase size={12} className="text-[#eab308]" />
@@ -272,33 +251,6 @@ export function BookingView({ reference }: { reference: string }) {
           </div>
         </div>
       </div>
-
-      {canCancel && (
-        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 shadow-sm">
-          <p className="font-bold text-[#0f172a] text-sm mb-2">Request a cancellation</p>
-          {cancelSent ? (
-            <p className="text-xs text-gray-600">Your request has been received. We will be in touch shortly.</p>
-          ) : (
-            <form onSubmit={requestCancellation} className="flex flex-col sm:flex-row gap-2 items-end">
-              <div className="flex-1 w-full">
-                <input
-                  type="text"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs text-[#0f172a] placeholder:text-gray-400 focus:border-[#eab308] focus:outline-none"
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  minLength={3}
-                  maxLength={500}
-                  placeholder="Reason for cancellation (required)"
-                  required
-                />
-              </div>
-              <button type="submit" className="rounded-full border border-red-200 bg-white px-4 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 transition-colors w-full sm:w-auto">
-                Send Request
-              </button>
-            </form>
-          )}
-        </div>
-      )}
 
       <div className="mt-4 pt-3 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-2">
         <Link 

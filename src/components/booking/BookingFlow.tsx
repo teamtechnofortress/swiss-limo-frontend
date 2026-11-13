@@ -196,18 +196,17 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 items-start min-w-0 w-full max-w-full">
-      <div className="lg:col-span-8 min-w-0 w-full max-w-full">
-        
-<div className="mb-4 rounded-2xl bg-white px-2 md:px-8 py-2 border-2 border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
-  <ol className="flex items-center justify-between w-full" aria-label="Booking steps">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 lg:grid-cols-12 items-start min-w-0 w-full max-w-full">
+<div className="relative isolate mx-auto w-full max-w-5xl lg:col-span-12 rounded-2xl bg-white px-1 sm:px-4 md:px-8 py-2 border-2 border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+   
+   <ol className="flex items-center justify-between w-full" aria-label="Booking steps">
              {flowSteps.map(({ step: stepNumber, label }, index) => {
               const done = step > stepNumber;
               const current = step === stepNumber;
 
               return (
-                <li key={label} className="flex flex-1 items-center relative">
-                  <div className="flex flex-col items-center z-10 bg-white px-2">
+                <li key={label} className="flex min-w-0 flex-1 items-start justify-center relative" aria-current={current ? 'step' : undefined}>
+                  <div className="relative z-10 flex min-w-0 flex-col items-center px-1 sm:px-2">
                     <span
                       className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-bold ${
                         current
@@ -219,12 +218,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                     >
                       {done ? <Check size={12} /> : index + 1}
                     </span>
-                    <span className={`mt-1 text-[10px] md:text-[11px] font-semibold ${current || done ? 'text-[#0f172a]' : 'text-gray-500'}`}>
+                    <span className={`mt-1 min-h-[28px] sm:min-h-0 text-center text-[9px] leading-[14px] sm:text-[10px] md:text-[11px] font-semibold ${current || done ? 'text-[#0f172a]' : 'text-gray-500'}`}>
                       {label}
                     </span>
                   </div>
                   {index < flowSteps.length - 1 && (
-                    <div className={`absolute top-3 left-[50%] w-full h-[2px] -z-0 ${done ? 'bg-[#0f172a]' : 'bg-gray-200'}`} />
+                    <div aria-hidden="true" className={`absolute top-3 left-[50%] w-full h-[2px] z-0 ${done ? 'bg-[#0f172a]' : 'bg-gray-200'}`} />
                   )}
                 </li>
               );
@@ -232,6 +231,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </ol>
         </div>
 
+      <div className="lg:col-span-8 min-w-0 w-full max-w-full">
         {error && (
           <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error}
@@ -344,15 +344,15 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
 
                 {step === 2 && quote && (
-          <div className="rounded-2xl bg-white p-4 md:p-6 border-2 border-gray-200 shadow-xl">
+          <div className="rounded-2xl bg-white px-4 pb-4 pt-3 md:px-6 md:pb-6 md:pt-3 border-2 border-gray-200 shadow-xl">
             
-            <div className="mb-4">
-              <p className="text-[14px] md:text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
+            <div className="mb-0">
+              <p className="text-[14px] md:text-[16px] font-bold text-[#eab308] tracking-wider mb-0 leading-tight">
                 Step 2 of 4
               </p>
               
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
+                <h2 className="text-lg md:text-2xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
                   Choose Your Vehicle
                 </h2>
               </div>
@@ -527,7 +527,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
       </div>
 
-      <aside className="lg:col-span-4 mt-4 lg:mt-[77px] sticky top-24">
+      <aside className="lg:col-span-4 mt-4 lg:mt-0 sticky top-24">
         <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-xl   shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)] overflow-hidden">
           
           <div className="bg-[#0f172a] px-4 py-2.5 flex items-center gap-2">
@@ -612,7 +612,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                     <>
                       <div className="flex items-baseline justify-between border-t border-gray-100 pt-2">
                         <span className="text-sm font-bold text-[#0f172a]">Estimated Total</span>
-                        <span className="font-serif text-xl text-[#0f172a]">{money(selected.vat.gross)}</span>
+                        <span className="font-sans text-sm sm:text-xl text-[#0f172a] leading-none">{money(selected.vat.gross)}</span>
                       </div>
                     </>
                   ) : (
@@ -629,7 +629,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
             <div className="text-[#eab308]">
               <ShieldCheck size={20} />
             </div>
-            <h3 className="text-lg font-serif text-[#0f172a] font-bold">Need Help?</h3>
+            <h3 className="text-lg font-serif text-[#0f172a] font-bold" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor' }}>Need Help?</h3>
           </div>
           <p className="text-xs text-[#0f172a] mb-3">Our team is here to assist you with your booking, special requests or custom travel plans.</p>
           <div className="flex gap-2">

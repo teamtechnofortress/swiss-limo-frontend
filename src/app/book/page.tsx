@@ -18,21 +18,18 @@ export default async function BookPage({
   return (
     <div className="bg-[#f8f9fa] min-h-screen flex flex-col">
       
-      <div className="relative w-full min-h-[180px] md:h-[200px] bg-[#0f172a] flex items-center overflow-hidden shrink-0 py-8 md:py-0">        <img 
+      <div className="relative w-full min-h-[100px] md:h-[120px] bg-[#0f172a] flex items-center overflow-hidden shrink-0 py-0">
+        <img 
           src="/images/home/step1.png" 
           alt="Swiss Alps Transfer" 
           className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/90 via-[#0f172a]/20 to-transparent"></div>
         
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-5xl font-serif font-bold text-white mb-2" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}>
+        <div className="relative z-10 w-full max-w-7xl mx-auto -translate-y-3 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl md:text-4xl font-serif font-bold text-white mb-0" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}>
             Book Your <span className="text-[#eab308]">Transfer</span>
           </h1>
-
-          <p className="text-sm md:text-base text-gray-200 max-w-xl">
-            Airport transfers, city rides and private tours across Switzerland.
-          </p>
         </div>
       </div>
 

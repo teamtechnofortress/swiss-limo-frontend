@@ -23,7 +23,7 @@ export interface CustomerDetails {
 }
 
 const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm !font-normal text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
-const lightLabel = "mb-1 block text-[11px] font-bold uppercase tracking-wider text-[#0f172a]";
+const lightLabel = "mb-1 block text-[13px] font-bold uppercase tracking-wider text-[#0f172a]";
 
 export function CustomerDetailsForm({
   customer,
@@ -91,7 +91,7 @@ export function CustomerDetailsForm({
       </div>
 
       <fieldset className="pt-0">
-        <legend className="text-[11px] font-bold uppercase tracking-wider text-[#0f172a] mb-1">Payment Method</legend>
+        <legend className="text-[13px] font-bold uppercase tracking-wider text-[#0f172a] mb-1">Payment Method</legend>
         <div className="space-y-1">
           {paymentMethods.map((method) => (
             <label 
@@ -111,8 +111,8 @@ export function CustomerDetailsForm({
                 className="mt-0.5 accent-[#eab308] h-3.5 w-3.5" 
               />
               <span>
-                <span className="block text-xs font-bold text-[#0f172a]">{PAYMENT_OPTIONS[method].title}</span>
-                <span className="mt-0.5 block text-[10px] text-gray-500 leading-snug">{PAYMENT_OPTIONS[method].text}</span>
+                <span className="block text-sm font-bold text-[#0f172a]">{PAYMENT_OPTIONS[method].title}</span>
+                <span className="mt-0.5 block text-xs text-gray-500 leading-snug">{PAYMENT_OPTIONS[method].text}</span>
               </span>
             </label>
           ))}

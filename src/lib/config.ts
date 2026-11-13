@@ -9,7 +9,7 @@ export const config = {
    */
   apiUrl: apiBaseUrl
     ? `${apiBaseUrl}/api`
-    : process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:8000/api',
+    : process.env.NEXT_PUBLIC_API_URL ?? 'http://192.168.1.12:8000/api',
   brandName: process.env.NEXT_PUBLIC_BRAND_NAME ?? 'Swiss Aero Transfer',
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@example.ch',
   contactPhone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '+41 00 000 00 00',

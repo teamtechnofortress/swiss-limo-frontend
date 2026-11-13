@@ -1,107 +1,79 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Check, Luggage, Users } from 'lucide-react';
+import { ArrowRight, Check, Luggage, MessageCircle, Users } from 'lucide-react';
 import { VehicleGallery } from '@/components/fleet/VehicleGallery';
-import { ButtonLink, Card, Container, Eyebrow, GoldRule } from '@/components/ui/primitives';
+import { ButtonLink, Container } from '@/components/ui/primitives';
 import { getVehicle } from '@/lib/fleet';
-import { amenityLabel, CATEGORY_LABEL, money, pricePerKm } from '@/lib/format';
+import { amenityLabel, CATEGORY_LABEL, money } from '@/lib/format';
 
 type Params = Promise<{ slug: string }>;
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { slug } = await params;
   const vehicle = await getVehicle(slug);
-
-  return vehicle
-    ? { title: vehicle.name, description: vehicle.description ?? undefined }
-    : { title: 'Vehicle not found' };
+  return vehicle ? { title: vehicle.name, description: vehicle.description ?? undefined } : { title: 'Vehicle not found' };
 }
 
 export default async function VehiclePage({ params }: { params: Params }) {
   const { slug } = await params;
   const vehicle = await getVehicle(slug);
-
-  if (!vehicle) {
-    notFound();
-  }
-
+  if (!vehicle) notFound();
   const priced = vehicle.price_per_km !== null;
+  const enquiryUrl = `/contact?type=vehicle&vehicle=${encodeURIComponent(vehicle.slug)}`;
+  const category = CATEGORY_LABEL[vehicle.category] ?? vehicle.category;
 
   return (
-    <Container className="pb-32 pt-12 md:pt-20">
-      <nav className="mb-10 text-xs uppercase tracking-[0.25em] text-mute" aria-label="Breadcrumb">
-        <Link href="/fleet" className="hover:text-gold">Fleet</Link>
-        <span className="mx-3 text-gold/60">/</span>
-        <span className="text-ivory/70">{vehicle.name}</span>
-      </nav>
-
-      <div className="grid gap-16 lg:grid-cols-12">
-        <div className="lg:col-span-7">
-          <VehicleGallery media={vehicle.media} legacyImages={vehicle.images} name={vehicle.name} />
-        </div>
-
-        <div className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start">
-          <Eyebrow>{CATEGORY_LABEL[vehicle.category]}</Eyebrow>
-          <h1 className="mt-5 text-5xl leading-tight md:text-6xl">{vehicle.name}</h1>
-          {vehicle.model_name && <p className="mt-3 font-serif text-xl italic text-mute">{vehicle.model_name}</p>}
-          <GoldRule className="my-8" />
-
-          {vehicle.description && (
-            <p className="leading-relaxed text-mute">{vehicle.description}</p>
-          )}
-
-          <div className="mt-10 grid grid-cols-2 gap-5">
-            <Card className="p-6">
-              <Users className="text-gold" size={20} />
-              <p className="mt-4 font-serif text-3xl">{vehicle.passenger_capacity}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-mute">Passengers</p>
-            </Card>
-            <Card className="p-6">
-              <Luggage className="text-gold" size={20} />
-              <p className="mt-4 font-serif text-3xl">{vehicle.luggage_capacity}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-mute">Luggage</p>
-            </Card>
-          </div>
-
-          <Card className="mt-6 p-8">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-mute">Pricing</p>
-            <p className="mt-3 font-serif text-4xl text-gold">{pricePerKm(vehicle.price_per_km)}</p>
-            {vehicle.minimum_fare !== null && (
-              <p className="mt-2 text-sm text-mute">Minimum fare {money(vehicle.minimum_fare)}</p>
-            )}
-            <p className="mt-4 text-xs leading-relaxed text-mute/80">
-              Your exact price, including VAT, is shown before you pay.
-            </p>
-          </Card>
-
-          {vehicle.amenities.length > 0 && (
-            <div className="mt-10">
-              <p className="mb-4 text-[11px] uppercase tracking-[0.3em] text-mute">On board</p>
-              <ul className="grid grid-cols-2 gap-3">
-                {vehicle.amenities.map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm text-ivory/80">
-                    <Check size={15} className="text-gold" />
-                    {amenityLabel(item)}
-                  </li>
-                ))}
-              </ul>
+    <div className="bg-[#f5f7fa] text-[#0d1b2a]">
+      <Container className="py-6 md:py-8 lg:pb-12">
+        <nav className="mb-5 flex flex-wrap items-center gap-2 text-xs text-slate-600" aria-label="Breadcrumb">
+          <Link href="/" className="hover:underline">Home</Link><span aria-hidden="true">/</span>
+          <Link href="/fleet" className="hover:underline">Our Fleet</Link><span aria-hidden="true">/</span>
+          <span aria-current="page" className="font-semibold text-[#0d1b2a]">{vehicle.name}</span>
+        </nav>
+        <header className="mb-6">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#986b00]">{category}</p>
+          <h1 className="mt-1 text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{vehicle.name}</h1>
+          <p className="mt-2 text-sm text-slate-600 md:text-base">{vehicle.model_name ?? 'Private chauffeur travel for airport transfers, business trips and personal journeys.'}</p>
+        </header>
+        <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1.9fr)_minmax(0,1fr)]">
+          <div className="min-w-0"><VehicleGallery media={vehicle.media} legacyImages={vehicle.images} name={vehicle.name} /></div>
+          <section aria-label="Vehicle pricing and booking" className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+            <span className="inline-block rounded-lg bg-[#fbe8ac] px-3 py-1 text-[11px] font-bold uppercase tracking-wider">{category}</span>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight md:text-3xl">Your journey, in comfort</h2>
+            <div className="mt-4">
+              <p className="flex flex-wrap items-baseline gap-x-2">
+                <span className="font-sans text-3xl font-bold tracking-tight text-[#986b00]">{priced ? money(vehicle.price_per_km!) : 'Price on request'}</span>
+                {priced && <span className="text-sm text-slate-600">per km</span>}
+              </p>
+              {vehicle.minimum_fare !== null && <p className="mt-1 text-sm text-slate-600">Minimum fare {money(vehicle.minimum_fare)}</p>}
             </div>
+            <div className="my-5 grid grid-cols-2 divide-x divide-gray-200 border-y border-gray-200 py-4">
+              <div className="flex items-center gap-2 pr-2"><Users size={24} className="shrink-0 text-[#986b00]" aria-hidden="true" /><p className="text-sm leading-snug">Up to {vehicle.passenger_capacity}<span className="block text-xs text-slate-600">passengers</span></p></div>
+              <div className="flex items-center gap-2 pl-3"><Luggage size={24} className="shrink-0 text-[#986b00]" aria-hidden="true" /><p className="text-sm leading-snug">Up to {vehicle.luggage_capacity}<span className="block text-xs text-slate-600">bags</span></p></div>
+            </div>
+            <ButtonLink href={priced ? `/book?vehicle=${vehicle.slug}` : enquiryUrl} className="w-full !rounded-xl !font-bold">{priced ? 'Book this vehicle' : 'Request a price'} <ArrowRight size={17} aria-hidden="true" /></ButtonLink>
+            <p className="mt-3 text-center text-xs leading-relaxed text-slate-600">Your final price, including VAT, is shown with your route and travel details before payment.</p>
+            <Link href={enquiryUrl} className="mt-4 flex w-full items-center justify-center rounded-xl border border-[#0d1b2a]/40 px-4 py-3 text-sm font-semibold transition hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d1b2a]">Contact us</Link>
+          </section>
+          {(vehicle.description || vehicle.amenities.length > 0) && (
+            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-2xl font-semibold md:text-3xl">On-board comfort</h2>
+              {vehicle.description && <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{vehicle.description}</p>}
+              {vehicle.amenities.length > 0 && <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">{vehicle.amenities.map((item) => <li key={item} className="flex items-center gap-3 rounded-lg bg-slate-50 px-3 py-3 text-sm"><Check size={19} className="shrink-0 text-[#986b00]" aria-hidden="true" />{amenityLabel(item)}</li>)}</ul>}
+            </section>
           )}
-
-          <div className="mt-12">
-            {priced ? (
-              <ButtonLink href={`/book?vehicle=${vehicle.slug}`} className="w-full">
-                Book this vehicle
-              </ButtonLink>
-            ) : (
-              <ButtonLink href={`/contact?type=vehicle&vehicle=${encodeURIComponent(vehicle.slug)}`} variant="outline" className="w-full">
-                Request a price
-              </ButtonLink>
-            )}
-          </div>
+          <section className="rounded-2xl bg-[#082a48] p-5 text-white shadow-sm sm:p-6 lg:col-start-2">
+            <h2 className="text-2xl font-semibold md:text-3xl">Need help choosing?</h2>
+            <div className="mt-4 flex items-start gap-4">
+              <MessageCircle size={30} className="shrink-0 text-[#f1c75b]" aria-hidden="true" />
+              <div><p className="text-sm leading-relaxed text-white/90">Not sure if {vehicle.name} is right for your trip? Our team can help you choose.</p>
+                <Link href={enquiryUrl} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-[#f1c75b] underline underline-offset-4 hover:text-white">Contact our team <ArrowRight size={16} aria-hidden="true" /></Link>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </div>
   );
 }
