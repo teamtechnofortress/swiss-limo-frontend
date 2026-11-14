@@ -17,7 +17,15 @@ declare global {
  * for every submission. With no site key set, the token stays null (the backend
  * accepts that only when bot checks are switched off).
  */
-export function Turnstile({ onToken, siteKey = '' }: { onToken: (token: string | null) => void; siteKey?: string }) {
+export function Turnstile({
+  onToken,
+  siteKey = '',
+  theme = 'dark',
+}: {
+  onToken: (token: string | null) => void;
+  siteKey?: string;
+  theme?: 'light' | 'dark';
+}) {
   const container = useRef<HTMLDivElement>(null);
   const callback = useRef(onToken);
   const effectiveSiteKey = siteKey || config.turnstileSiteKey;
@@ -39,7 +47,7 @@ export function Turnstile({ onToken, siteKey = '' }: { onToken: (token: string |
 
       widgetId = window.turnstile.render(container.current, {
         sitekey: effectiveSiteKey,
-        theme: 'dark',
+        theme,
         callback: (token: string) => callback.current(token),
         'expired-callback': () => callback.current(null),
         'error-callback': () => callback.current(null),
@@ -67,7 +75,7 @@ export function Turnstile({ onToken, siteKey = '' }: { onToken: (token: string |
         window.turnstile.remove(widgetId);
       }
     };
-  }, [effectiveSiteKey]);
+  }, [effectiveSiteKey, theme]);
 
-  return <div ref={container} className="min-h-[65px]" />;
+  return <div ref={container} className="min-h-[65px]" aria-label="Security verification" />;
 }

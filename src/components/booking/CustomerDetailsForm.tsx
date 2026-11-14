@@ -22,8 +22,8 @@ export interface CustomerDetails {
   phone: string;
 }
 
-const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm !font-normal text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
-const lightLabel = "mb-1 block text-[13px] font-bold uppercase tracking-wider text-[#0f172a]";
+const lightInput = "h-12 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-2 focus:ring-[#eab308]/20";
+const lightLabel = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#0f172a]";
 
 export function CustomerDetailsForm({
   customer,
@@ -49,8 +49,9 @@ export function CustomerDetailsForm({
   paymentMethods: PaymentMethodKey[];
   payment: PaymentMethodKey;
   onPaymentChange: (method: PaymentMethodKey) => void;
-  turnstileSiteKey: string;
-  onTurnstileToken: (token: string | null) => void;
+  /** Used by the trip booking flow; the main booking flow verifies on its review step. */
+  turnstileSiteKey?: string;
+  onTurnstileToken?: (token: string | null) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
   busy: boolean;
@@ -59,19 +60,19 @@ export function CustomerDetailsForm({
   backLabel?: string;
 }) {
   return (
-    <form onSubmit={onSubmit} className="space-y-1">
+    <form onSubmit={onSubmit} className="space-y-5">
       
-      <div className="mb-2">
-        <p className="text-[14px] font-bold text-[#eab308] tracking-wider mb-0.5">
-          Step 3 of 4
+      <div>
+        <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
+          {eyebrow ?? 'Step 3 of 4'}
         </p>
-        <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
+        <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
           Your Details
         </h2>
-        <p className="text-xs text-gray-500 mt-0.5">Provide your contact information to confirm the booking.</p>
+        <p className="mt-1 text-sm text-gray-500">{intro}</p>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className={lightLabel}>Full Name *</label>
           <input className={lightInput} value={customer.name} onChange={(event) => onCustomerChange({ ...customer, name: event.target.value })} autoComplete="name" required />
@@ -90,16 +91,16 @@ export function CustomerDetailsForm({
         </div>
       </div>
 
-      <fieldset className="pt-0">
-        <legend className="text-[13px] font-bold uppercase tracking-wider text-[#0f172a] mb-1">Payment Method</legend>
-        <div className="space-y-1">
+      <fieldset>
+        <legend className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#0f172a]">Payment Method</legend>
+        <div className="space-y-2">
           {paymentMethods.map((method) => (
             <label 
               key={method} 
-              className={`flex cursor-pointer gap-2.5 rounded-xl border-2 p-3 transition ${
+              className={`flex cursor-pointer gap-3 rounded-xl border-2 p-3.5 transition ${
                 payment === method 
-                  ? 'border-[#eab308] bg-[#eab308]/5' 
-                  : 'border-gray-200 bg-white hover:border-gray-300'
+                  ? 'border-[#eab308] bg-[#fffaf0] shadow-sm'
+                  : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
               }`}
             >
               <input 
@@ -108,33 +109,36 @@ export function CustomerDetailsForm({
                 value={method} 
                 checked={payment === method} 
                 onChange={() => onPaymentChange(method)} 
-                className="mt-0.5 accent-[#eab308] h-3.5 w-3.5" 
+                className="mt-0.5 h-4 w-4 accent-[#eab308]"
               />
               <span>
                 <span className="block text-sm font-bold text-[#0f172a]">{PAYMENT_OPTIONS[method].title}</span>
-                <span className="mt-0.5 block text-xs text-gray-500 leading-snug">{PAYMENT_OPTIONS[method].text}</span>
+                <span className="mt-0.5 block text-xs leading-snug text-gray-500">{PAYMENT_OPTIONS[method].text}</span>
               </span>
             </label>
           ))}
         </div>
       </fieldset>
 
-      <div className="flex justify-center -mt-14 h-[33px] overflow-hidden">
-        <Turnstile onToken={onTurnstileToken} siteKey={turnstileSiteKey} />
-      </div>
+      {turnstileSiteKey && onTurnstileToken && (
+        <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
+          <p className="mb-2 text-[11px] font-semibold text-[#59430b]">Security verification is required before confirming your booking.</p>
+          <Turnstile onToken={onTurnstileToken} siteKey={turnstileSiteKey} />
+        </div>
+      )}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between items-center -mt-3">
+      <div className="flex flex-col-reverse items-center gap-3 pt-1 sm:flex-row sm:justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-black hover:bg-gray-50 transition-all w-full sm:w-auto"
+          className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 text-sm font-bold text-black transition hover:bg-gray-50 sm:w-auto"
         >
           <ArrowLeft size={14} /> {backLabel}
         </button>
         <button
           type="submit"
           disabled={busy}
-          className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2.5 text-xs font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
+          className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 text-sm font-bold text-black transition hover:shadow-lg disabled:opacity-50 sm:w-auto"
         >
           {busy ? 'Please wait…' : 'Continue to Review & Book'} 
           {!busy && <ArrowRight size={14} />}

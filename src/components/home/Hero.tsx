@@ -1,6 +1,6 @@
 'use client';
 
-import { Car, MapPin, CalendarDays, ChevronDown, ArrowLeftRight, Mountain, Clock, Users, ArrowRight, Star, Users2, Clock3, ShieldCheck } from 'lucide-react';
+import { Car, MapPin, CalendarDays, ChevronDown, Mountain, Clock, Users, ArrowRight, Star, Users2, Clock3, ShieldCheck } from 'lucide-react';
 import { ButtonLink, Container } from '@/components/ui/primitives';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -123,26 +123,26 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
 <div className="relative mt-8 w-full max-w-[1150px] px-4 md:absolute md:bottom-0 md:left-1/2 md:z-50 md:-translate-x-1/2 md:translate-y-1/2">
   <div className="relative flex flex-col">
 
-    <div className="relative z-10 flex w-fit items-center rounded-t-[24px] rounded-tr-[24px] bg-white pt-1 pr-1 pl-1">
+    <div className="relative z-10 flex w-fit items-center gap-1 rounded-t-[24px] rounded-tr-[24px] border border-b-0 border-gray-100 bg-white p-1 shadow-[0_-8px_20px_rgba(13,27,42,0.05)]">
       <button
         type="button"
-        className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#0d1b2a] px-4 py-2.5 text-[11px] font-bold text-white transition sm:px-6 sm:text-xs"
+        className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#0d1b2a] px-4 py-2.5 text-[11px] font-bold text-white shadow-sm transition sm:px-6 sm:text-xs"
       >
         <Car size={16} />
         Transfer / Ride
       </button>
-      <button
-        type="button"
-        className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-[11px] font-bold text-[#0d1b2a] transition hover:bg-gray-50 sm:px-6 sm:text-xs"
+      <Link
+        href="/trips"
+        className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-[11px] font-bold text-[#0d1b2a] transition hover:bg-[#fff8e8] hover:text-[#8a5b00] sm:px-6 sm:text-xs"
       >
         <Mountain size={16} />
         Day Trip / Tour
-      </button>
+      </Link>
     </div>
 
-    <form onSubmit={handleBookNow} className="-mt-[1px] rounded-[24px] rounded-tl-none border border-gray-100 bg-white p-4 shadow-[0_20px_50px_rgba(0,0,0,0.13)] md:p-5">
+    <form onSubmit={handleBookNow} className="-mt-[1px] rounded-[24px] rounded-tl-none border border-gray-100 bg-white p-4 pb-5 shadow-[0_20px_50px_rgba(13,27,42,0.13)] md:p-5">
 
-     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,1.3fr)_38px_minmax(0,1.3fr)_minmax(0,0.9fr)_minmax(0,0.75fr)_minmax(0,0.95fr)_minmax(0,1.1fr)] xl:items-end xl:gap-2.5">
+     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1.1fr)] xl:items-end xl:gap-3">
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
             Pickup Location
@@ -153,19 +153,10 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
             onChange={setPickup}
             placeholder="Zurich Airport (ZRH)"
             googleBrowserKey={googleBrowserKey}
+            statusPosition="overlay"
             className="w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2.5 h-[44px] text-[13px] font-medium text-[#0d1b2a] placeholder:text-gray-500 transition focus:border-[#f1c75b] focus:outline-none shadow-sm"
             icon={<MapPin size={18} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#0d1b2a]" />}
           />
-        </div>
-
-        <div className="hidden items-end justify-center xl:flex">
-          <button
-            type="button"
-            aria-label="Swap pickup and destination"
-            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-lg bg-[#fff8e8] text-[#0d1b2a] shadow-sm transition hover:bg-[#fce8b5] xl:mb-0"
-          >
-            <ArrowLeftRight size={18} />
-          </button>
         </div>
 
         <div className="min-w-0">
@@ -178,6 +169,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
             onChange={setDropoff}
             placeholder="Lucerne, Switzerland"
             googleBrowserKey={googleBrowserKey}
+            statusPosition="overlay"
             className="w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2.5 h-[44px] text-[13px] font-medium text-[#0d1b2a] placeholder:text-gray-500 transition focus:border-[#f1c75b] focus:outline-none shadow-sm"
             icon={<MapPin size={18} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#0d1b2a]" />}
           />
@@ -214,6 +206,9 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
         </div>
 
         <div className="min-w-0">
+          <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
+            Passengers
+          </label>
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <Users size={18} className="shrink-0 text-[#0d1b2a]" />
             <select 

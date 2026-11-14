@@ -14,6 +14,7 @@ interface PlaceFieldProps {
   initialQuery?: string;
   className?: string;
   icon?: React.ReactNode;
+  statusPosition?: 'inline' | 'overlay';
 }
 
 export function PlaceField({ 
@@ -23,7 +24,9 @@ export function PlaceField({
   placeholder, 
   initialQuery, 
   googleBrowserKey,
-  className = "w-full min-w-0 truncate rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] !font-normal text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]",  icon = <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+  className = "w-full min-w-0 truncate rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] !font-normal text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]",
+  icon = <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />,
+  statusPosition = 'inline',
 }: PlaceFieldProps) {
   const [text, setText] = useState(value?.text ?? initialQuery ?? '');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
@@ -135,7 +138,14 @@ export function PlaceField({
       </div>
 
       {value && (
-        <p className="mt-1.5 text-xs text-[#d97706]">Address selected</p>
+        <p
+          className={statusPosition === 'overlay'
+            ? 'pointer-events-none absolute left-0 top-full mt-1 text-[11px] font-medium leading-4 text-[#d97706]'
+            : 'mt-1.5 text-xs text-[#d97706]'}
+          aria-live="polite"
+        >
+          Address selected
+        </p>
       )}
 
       {open && suggestions.length > 0 && (

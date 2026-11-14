@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { 
   ArrowLeft, ArrowRight, Check, Car, MapPin, Calendar, Clock, 
   Users, Briefcase, FileText, ClipboardList, ShieldCheck, Mail, Phone, Plane, Send
@@ -32,8 +32,8 @@ const STEPS = [
   { step: 4, label: 'Review & Book' },
 ] as const;
 
-const lightInput = "w-full rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]";
-const lightLabel = "mb-1 block text-[11px]  uppercase tracking-wider text-[#0f172a]";
+const lightInput = "h-12 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-2 focus:ring-[#eab308]/20";
+const lightLabel = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#0f172a]";
 
 function messageOf(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
@@ -41,6 +41,8 @@ function messageOf(error: unknown): string {
 
 export function BookingFlow({ from, to, date, time, passengers, vehicle }: BookingFlowProps) {
   const router = useRouter();
+  const flowTopRef = useRef<HTMLDivElement>(null);
+  const hasMountedStepRef = useRef(false);
 
   const [step, setStep] = useState(1);
   const [pickup, setPickup] = useState<PlaceValue | null>(null);
@@ -61,6 +63,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [googleBrowserKey, setGoogleBrowserKey] = useState('');
   const [turnstileSiteKey, setTurnstileSiteKey] = useState('');
+  const [turnstileEnabled, setTurnstileEnabled] = useState(false);
+  const [turnstileKey, setTurnstileKey] = useState(0);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +82,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
       .then((publicConfig) => {
         if (active) {
           setGoogleBrowserKey(publicConfig.googleMapsBrowserKey);
+          setTurnstileEnabled(publicConfig.turnstileEnabled);
           setTurnstileSiteKey(publicConfig.turnstileEnabled ? publicConfig.turnstileSiteKey : '');
         }
       })
@@ -90,12 +95,35 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
     };
   }, []);
 
+  useEffect(() => {
+    if (!hasMountedStepRef.current) {
+      hasMountedStepRef.current = true;
+      return;
+    }
+
+    const scrollToStep = () => {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      flowTopRef.current?.scrollIntoView({
+        behavior: reducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    };
+
+    const frame = window.requestAnimationFrame(scrollToStep);
+    return () => window.cancelAnimationFrame(frame);
+  }, [step]);
+
   async function findVehicles(event: FormEvent) {
     event.preventDefault();
     setError(null);
 
     if (!pickup || !dropoff) {
       setError('Please choose both addresses from the suggestions.');
+      return;
+    }
+
+    if (turnstileEnabled && !turnstileToken) {
+      setError('Please complete the security verification before checking availability.');
       return;
     }
 
@@ -129,6 +157,10 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
       setStep(preselected ? 3 : 2);
     } catch (e) {
       setError(messageOf(e));
+      if (turnstileEnabled) {
+        setTurnstileToken(null);
+        setTurnstileKey((key) => key + 1);
+      }
     } finally {
       setBusy(false);
     }
@@ -145,6 +177,11 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
 
     if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
       setError('Please complete your contact details.');
+      return;
+    }
+
+    if (turnstileEnabled && !turnstileToken) {
+      setError('Please complete the security verification before confirming your booking.');
       return;
     }
 
@@ -180,6 +217,10 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         setSelectedId(null);
       }
       setError(messageOf(e));
+      if (turnstileEnabled) {
+        setTurnstileToken(null);
+        setTurnstileKey((key) => key + 1);
+      }
     } finally {
       setBusy(false);
     }
@@ -192,12 +233,14 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
       return;
     }
     setError(null);
+    setTurnstileToken(null);
+    setTurnstileKey((key) => key + 1);
     setStep(4);
   };
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 lg:grid-cols-12 items-start min-w-0 w-full max-w-full">
-<div className="relative isolate mx-auto w-full max-w-5xl lg:col-span-12 rounded-2xl bg-white px-1 sm:px-4 md:px-8 py-2 border-2 border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+    <div className="grid w-full max-w-full min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-x-6 gap-y-4 lg:grid-cols-12">
+      <div ref={flowTopRef} className="relative isolate mx-auto w-full max-w-5xl scroll-mt-28 rounded-2xl border-2 border-gray-200 bg-white px-1 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:px-4 md:px-8 lg:col-span-12">
    
    <ol className="flex items-center justify-between w-full" aria-label="Booking steps">
              {flowSteps.map(({ step: stepNumber, label }, index) => {
@@ -231,7 +274,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </ol>
         </div>
 
-      <div className="lg:col-span-8 min-w-0 w-full max-w-full">
+      <div className="flex w-full max-w-full min-w-0 flex-col lg:col-span-8">
         {error && (
           <div role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
             {error}
@@ -239,19 +282,19 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
 
         {step === 1 && (
-          <div className="rounded-2xl bg-white p-4 md:p-6 border-2 border-gray-200 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)]">
+          <div className="h-full rounded-2xl border-2 border-gray-200 bg-white p-5 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.28)] md:p-6">
             
-            <div className="mb-4">
-              <p className="text-[14px] md:text-[16px] font-bold text-[#eab308] tracking-wider mb-1">
+            <div className="mb-6 max-w-2xl">
+              <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
                 Step 1 of 4
               </p>
-              <h2 className="text-2xl md:text-4xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
+              <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
                 Plan Your Journey
               </h2>
             </div>
             
-            <form onSubmit={findVehicles} className="space-y-3 md:space-y-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0 w-full">
+            <form onSubmit={findVehicles} className="space-y-4">
+              <div className="grid min-w-0 w-full grid-cols-1 gap-4 sm:grid-cols-2">
                 
                 <div className="min-w-0 w-full max-w-full">
                   <label className={lightLabel}>Pickup</label>
@@ -277,7 +320,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
                 <div>
                   <label className={lightLabel}>Date</label>
                   <input type="date" className={lightInput} value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
@@ -304,7 +347,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-0">
+              <div className="flex items-center gap-2 pt-0.5">
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
@@ -312,12 +355,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                     onChange={(e) => setRoundTrip(e.target.checked)}
                     className="h-4 w-4 accent-[#eab308]"
                   />
-                  <span className="text-xs font-bold text-black uppercase tracking-wider">Add a return journey</span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-black">Add a return journey</span>
                 </label>
               </div>
 
               {roundTrip && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-1">
+                <div className="grid grid-cols-1 gap-4 pb-1 sm:grid-cols-2">
                   <div>
                     <label className={lightLabel}>Return date</label>
                     <input type="date" className={lightInput} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required />
@@ -329,12 +372,17 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 </div>
               )}
 
-              <div className="h-[13px] relative overflow-hidden flex items-start -mb-4">
-                <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
-              </div>
+              {turnstileEnabled && (
+                <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
+                  <div className="flex items-center gap-2 text-[11px] font-semibold text-[#59430b]"><ShieldCheck size={15} className="text-[#d99b14]" /> Security verification is required to check availability.</div>
+                  <div className="mt-2 flex justify-center sm:justify-start">
+                    <Turnstile key={`quote-${turnstileKey}`} onToken={setTurnstileToken} siteKey={turnstileSiteKey} theme="light" />
+                  </div>
+                </div>
+              )}
 
-              <div className="flex justify-center w-full relative z-10 pt-4 md:pt-0">
-                <button type="submit" disabled={busy} className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-8 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50">
+              <div className="flex w-full justify-center pt-1 sm:justify-end">
+                <button type="submit" disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-8 py-3 text-sm font-bold text-black transition-all hover:shadow-lg disabled:opacity-50 sm:w-auto">
                   {busy ? 'Checking availability…' : 'Continue to choose vehicle'}
                   {!busy && <ArrowRight size={16} />}
                 </button>
@@ -343,22 +391,25 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </div>
         )}
 
-                {step === 2 && quote && (
-          <div className="rounded-2xl bg-white px-4 pb-4 pt-3 md:px-6 md:pb-6 md:pt-3 border-2 border-gray-200 shadow-xl">
+        {step === 2 && quote && (
+          <div className="h-full rounded-2xl border-2 border-gray-200 bg-white p-5 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.28)] md:p-6">
             
-            <div className="mb-0">
-              <p className="text-[14px] md:text-[16px] font-bold text-[#eab308] tracking-wider mb-0 leading-tight">
+            <div className="mb-5">
+              <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
                 Step 2 of 4
               </p>
-              
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h2 className="text-lg md:text-2xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
-                  Choose Your Vehicle
-                </h2>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
+                    Choose Your Vehicle
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500">Select the vehicle that best suits your journey.</p>
+                </div>
+                <p className="text-xs font-semibold text-[#536fad]">{offers.length} {offers.length === 1 ? 'vehicle' : 'vehicles'} available</p>
               </div>
             </div>
 
-            <div className="space-y-3 pb-2">
+            <div className="space-y-3">
               {offers.map((offer) => (
                 <OfferCard
                   key={offer.vehicle_id}
@@ -369,11 +420,11 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               ))}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 pt-4 mt-2 border-t border-gray-100 sm:flex-row sm:justify-between shrink-0">
+            <div className="mt-5 flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-between">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="flex items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-2.5 text-sm font-bold text-black hover:bg-gray-50 transition-all w-full sm:w-auto"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 text-sm font-bold text-black transition hover:bg-gray-50 sm:w-auto"
               >
                 <ArrowLeft size={16} /> Change journey
               </button>
@@ -381,7 +432,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 type="button"
                 disabled={!selected}
                 onClick={() => setStep(3)}
-                className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-2.5 text-sm font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 text-sm font-bold text-black transition hover:shadow-lg disabled:opacity-50 sm:w-auto"
               >
                 Continue <ArrowRight size={16} />
               </button>
@@ -390,7 +441,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
 
         {step === 3 && quote && selected && (
-          <div className="rounded-2xl bg-white p-5 md:p-6 border-2 border-gray-200 shadow-xl">
+          <div className="h-full rounded-2xl border-2 border-gray-200 bg-white p-5 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.28)] md:p-6">
             <CustomerDetailsForm
               customer={customer}
               onCustomerChange={setCustomer}
@@ -399,8 +450,6 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
               paymentMethods={quote.payment_methods}
               payment={payment}
               onPaymentChange={setPayment}
-              turnstileSiteKey={turnstileSiteKey}
-              onTurnstileToken={setTurnstileToken}
               onSubmit={handleStep3Continue} 
               onBack={() => setStep(vehicle ? 1 : 2)}
               busy={busy}
@@ -409,83 +458,83 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
 
         {step === 4 && quote && selected && (
-          <div className="rounded-2xl bg-white p-4 md:p-5 border border-gray-300 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.25)]">
-            <div className="mb-4">
-              <p className="text-[14px] font-bold text-[#eab308] tracking-wider mb-0.5">
+          <div className="h-full rounded-2xl border-2 border-gray-200 bg-white p-5 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.28)] md:p-6">
+            <div className="mb-5">
+              <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
                 Step 4 of 4
               </p>
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#0f172a]" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>                 
+              <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
                 Review & Book
               </h2>
-              <p className="text-xs text-gray-500 mt-0.5">Please review your booking details and confirm your request.</p>
+              <p className="mt-1 text-sm leading-relaxed text-[#536fad]">Review your journey and contact details, then submit your booking request.</p>
             </div>
 
-            <form onSubmit={confirmBooking} className="space-y-3">
+            <form onSubmit={confirmBooking} className="space-y-4">
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
 
                 {/* Journey Details */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-white shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-[11px] font-black uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><MapPin size={12} /> Journey Details</h3>
-                    <button type="button" onClick={() => setStep(1)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
+                <div className="h-full rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><MapPin size={12} /> Journey Details</h3>
+                    <button type="button" onClick={() => setStep(1)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> Edit</button>
                   </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between"><span className="text-black">From</span><span className="font-semibold text-[#0f172a] text-right truncate max-w-[150px]">{outbound?.pickup ?? pickup?.text}</span></div>
-                    <div className="flex justify-between"><span className="text-black">To</span><span className="font-semibold text-[#0f172a] text-right truncate max-w-[150px]">{outbound?.dropoff ?? dropoff?.text}</span></div>
-                    <div className="flex justify-between"><span className="text-black">Date</span><span className="font-semibold text-[#0f172a]">{outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate}</span></div>
-                    <div className="flex justify-between"><span className="text-black">Time</span><span className="font-semibold text-[#0f172a]">{outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime}</span></div>
-                    <div className="flex justify-between"><span className="text-black">Distance</span><span className="font-semibold text-[#0f172a]">{quote.route_summary ? routeSummary(quote.route_summary) : '—'}</span></div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">From</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound?.pickup ?? pickup?.text}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">To</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound?.dropoff ?? dropoff?.text}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Date</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Time</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Distance</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{quote.route_summary ? routeSummary(quote.route_summary) : '—'}</span></div>
                   </div>
                 </div>
 
                 {/* Selected Vehicle */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-white shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Car size={12} /> Selected Vehicle</h3>
-                    <button type="button" onClick={() => setStep(2)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
+                <div className="h-full rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><Car size={12} /> Selected Vehicle</h3>
+                    <button type="button" onClick={() => setStep(2)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> Edit</button>
                   </div>
 
-                  <div className="flex flex-col items-center justify-center gap-2 mb-2 text-center">
+                  <div className="flex min-h-28 items-center gap-4">
                     {selected.thumbnail_url ? (
-                      <div className="h-12 w-15 rounded overflow-hidden shrink-0 mx-auto">
+                      <div className="h-24 w-36 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                         <img src={selected.thumbnail_url} alt={selected.name} className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="h-10 w-16 bg-gray-100 rounded flex items-center justify-center shrink-0">
-                        <Car className="text-gray-400" size={24} />
+                      <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <Car className="text-gray-400" size={32} />
                       </div>
                     )}
-                    <div>
-                      <p className="font-serif font-bold text-xs text-[#0f172a] justify-center">{selected.name}</p>
-                      <p className="text-[10px] text-gray-500">{selected.category}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="inline-flex rounded-full bg-[#eab308]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#8a6505]">{selected.category}</p>
+                      <p className="mt-2 truncate font-serif text-xl font-bold leading-none text-[#0f172a] md:text-2xl">{selected.name}</p>
+                      <p className="mt-1 text-[11px] text-[#536fad]">Selected for your journey</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[10px] font-medium text-slate-600">
+                        <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1"><Users size={11} className="text-[#536fad]" /> {quote.passengers} passengers</span>
+                        <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1"><Briefcase size={11} className="text-[#536fad]" /> {bags} bags</span>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex justify-center items-center gap-3 text-[10px] text-gray-600 mt-1 w-full">
-                    <span className="flex items-center gap-1"><Users size={10} /> {quote.passengers} Passengers</span>
-                    <span className="flex items-center gap-1"><Briefcase size={10} /> {bags} Bags</span>
                   </div>
                 </div>
 
                 {/* Your Details */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-white shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5"><Users size={12} /> Your Details</h3>
-                    <button type="button" onClick={() => setStep(3)} className="text-[#eab308] text-[10px] font-bold hover:underline flex items-center gap-0.5"><FileText size={10} /> Edit</button>
+                <div className="h-full rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm transition-shadow hover:shadow-md">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><Users size={12} /> Your Details</h3>
+                    <button type="button" onClick={() => setStep(3)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> Edit</button>
                   </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between"><span className="text-black">Full Name</span><span className="font-semibold text-[#0f172a]">{customer.name}</span></div>
-                    <div className="flex justify-between"><span className="text-black">Email</span><span className="font-semibold text-[#0f172a] truncate max-w-[150px]">{customer.email}</span></div>
-                    <div className="flex justify-between"><span className="text-black">Phone</span><span className="font-semibold text-[#0f172a]">{customer.phone}</span></div>
-                    <div className="flex justify-between"><span className="text-black">Flight Number</span><span className="font-semibold text-[#0f172a]">{flight || '—'}</span></div>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Full name</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.name}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Email</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.email}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Phone</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.phone}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Flight number</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{flight || '—'}</span></div>
                   </div>
                 </div>
 
                 {/* Price Summary */}
-                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50/50 shadow-[inset_0_4px_12px_rgba(0,0,0,0.15)] hover:shadow-[inset_0_2px_5px_rgba(0,0,0,0.05),0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-300">
-                  <h3 className="text-[11px] font-black  uppercase tracking-wider text-[#0f172a] flex items-center gap-1.5 mb-2"><FileText size={12} /> Price Summary</h3>
-                  <div className="space-y-1.5 text-xs mb-2">
+                <div className="h-full rounded-xl border border-[#eab308]/30 bg-[#fffaf0] p-4 shadow-sm transition-shadow hover:shadow-md">
+                  <h3 className="mb-3 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><FileText size={12} /> Price Summary</h3>
+                  <div className="mb-3 space-y-2 text-xs">
                     <div className="flex justify-between">
                       <span className="text-black">Distance</span>
                       <span className="font-semibold text-[#0f172a]">{quote.route_summary ? `${quote.route_summary.distance_km} km` : '—'}</span>
@@ -495,29 +544,42 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                       <span className="font-semibold text-[#0f172a]">{money(selected.vat.gross / (quote.route_summary?.distance_km || 1))}</span>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center border-t border-gray-200 pt-2">
+                  <div className="flex items-center justify-between border-t border-[#eab308]/20 pt-3">
                     <span className="font-bold text-sm text-[#0f172a]">Estimated Total</span>
-                    <span className="font-serif text-xl font-bold text-[#eab308]">{money(selected.vat.gross)}</span>
+                    <span className="text-xl font-bold tracking-tight text-[#b77909] tabular-nums">{money(selected.vat.gross)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-center -mt-24 h-[28px] overflow-hidden">
-                <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />
-              </div>
+              {turnstileEnabled && (
+                <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div className="flex items-start gap-2">
+                      <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#d99b14]" />
+                      <div>
+                        <p className="text-[11px] font-semibold text-[#59430b]">Security verification is required before confirming your booking.</p>
+                        <p className="mt-0.5 text-[10px] text-[#806522]">This protects your request and helps prevent automated submissions.</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-center sm:justify-end">
+                      <Turnstile key={`booking-${turnstileKey}`} onToken={setTurnstileToken} siteKey={turnstileSiteKey} theme="light" />
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-between items-center relative -top-4">
+              <div className="flex flex-col-reverse items-center gap-3 pt-1 sm:flex-row sm:justify-between">
                 <button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="flex items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-black hover:bg-gray-50 transition-all w-full sm:w-auto"
+                  className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 text-sm font-bold text-black transition hover:bg-gray-50 sm:w-auto"
                 >
                   <ArrowLeft size={14} /> Back to Details
                 </button>
                 <button
                   type="submit"
                   disabled={busy}
-                  className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 py-1.5 text-xs font-bold text-black hover:shadow-lg transition-all disabled:opacity-50 w-full sm:w-auto"
+                  className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 text-sm font-bold text-black transition hover:shadow-lg disabled:opacity-50 sm:w-auto"
                 >
                   {busy ? 'Processing...' : 'Book Now (Request Transfer)'} <Send size={14} />
                 </button>
@@ -527,8 +589,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         )}
       </div>
 
-      <aside className="lg:col-span-4 mt-4 lg:mt-0 sticky top-24">
-        <div className="rounded-2xl bg-white border-2 border-gray-200 shadow-xl   shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)] overflow-hidden">
+      <aside className="mt-4 lg:col-span-4 lg:mt-0 lg:sticky lg:top-24">
+        <div className="overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.4)]">
           
           <div className="bg-[#0f172a] px-4 py-2.5 flex items-center gap-2">
             {step === 4 ? <ShieldCheck className="text-[#eab308]" size={18} /> : <ClipboardList className="text-[#eab308]" size={18} />}
@@ -624,7 +686,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
           </div>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-white border-2 border-gray-200 shadow-xl p-4  shadow-[0_15px_40px_-10px_rgba(0,0,0,0.25)]">
+        <div className="mt-4 rounded-2xl border-2 border-gray-200 bg-white p-4 shadow-xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.25)]">
           <div className="flex items-center gap-2 mb-2">
             <div className="text-[#eab308]">
               <ShieldCheck size={20} />
@@ -649,13 +711,13 @@ function routeSummary(route: RouteMetrics): string {
 
 function SidebarRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-2">
-      <div className="text-[#0f172a] mt-0.5 shrink-0 w-4 flex justify-center">
+    <div className="flex items-start gap-2 py-0.5">
+      <div className="mt-0.5 flex w-4 shrink-0 justify-center text-[#0f172a]">
         {icon}
       </div>
-      <div className="flex-1 flex items-center justify-between gap-2">
-        <p className="text-[10px] uppercase tracking-wider text-[#0f172a]">{label}</p>
-        <p className="text-xs font-bold text-[#0f172a] whitespace-nowrap overflow-hidden text-ellipsis leading-[1.6]">{value}</p>
+      <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
+        <p className="shrink-0 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#0f172a]">{label}</p>
+        <p className="min-w-0 text-right text-xs font-bold leading-5 text-[#0f172a] break-words">{value}</p>
       </div>
     </div>
   );
