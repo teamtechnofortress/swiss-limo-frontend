@@ -309,13 +309,13 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
             <div>
               <div className="mb-2 flex items-center gap-3">
                 <span className="h-[2px] w-6 rounded-full bg-[#f1c75b]" />
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f1c75b]">Featured day trips &amp; tours</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f1c75b]">Featured private journeys</p>
               </div>
               <h2 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-white md:text-[34px]">
-                Discover Switzerland&apos;s Highlights
+                Explore more, your way.
               </h2>
               <p className="mt-1.5 text-[13px] font-medium text-gray-200 md:text-sm">
-                Fixed-price tours to Switzerland’s most iconic destinations.
+                Private day trips and tours designed around the places you want to see.
               </p>
             </div>
 

@@ -61,6 +61,7 @@ export interface TripDetail {
   summary: string;
   descriptionHtml: string;
   region: string;
+  heroImageUrl: string | null;
   coverUrl: string | null;
   gallery: TripGalleryImage[];
   faqs: TripFaq[];
@@ -127,6 +128,7 @@ interface ApiTripDetailData {
   summary?: unknown;
   description_html?: unknown;
   region?: unknown;
+  hero_image_url?: unknown;
   cover_url?: unknown;
   gallery?: unknown;
   faqs?: unknown;
@@ -373,6 +375,7 @@ function tripDetailFromApi(value: unknown): TripDetail | null {
     summary: trip.summary,
     descriptionHtml: sanitizeTripHtml(trip.description_html),
     region: trip.region,
+    heroImageUrl: typeof trip.hero_image_url === 'string' && trip.hero_image_url.length > 0 ? trip.hero_image_url : null,
     coverUrl: typeof trip.cover_url === 'string' && trip.cover_url.length > 0 ? trip.cover_url : null,
     gallery: galleryFromApi(trip.gallery),
     faqs: tripFaqsFromApi(trip.faqs),

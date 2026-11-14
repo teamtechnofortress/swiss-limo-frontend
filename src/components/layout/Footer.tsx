@@ -41,7 +41,7 @@ export function Footer({ site }: { site: SiteSettings }) {
             {/* Left list */}
             <ul className="space-y-2">
               <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
-              <li><Link href="/airport-transfers" className="hover:text-white transition-colors">Services</Link></li>
+              <li><Link href="/airport-transfers" className="hover:text-white transition-colors">Airport Transfers</Link></li>
               <li><Link href="/trips" className="hover:text-white transition-colors">Day Trips & Tours</Link></li>
             </ul>
             {/* Right list */}

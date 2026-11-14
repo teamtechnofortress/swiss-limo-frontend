@@ -1,60 +1,50 @@
 import Link from 'next/link';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowRight, MapPin } from 'lucide-react';
 import { ImagePlaceholder } from '@/components/ui/primitives';
 import { money } from '@/lib/format';
 import type { Trip } from '@/lib/trips';
 
 const pricingLabels = {
-  fixed: 'Fixed price',
-  distance: 'Distance priced',
-  enquiry: 'Price on request',
+  fixed: 'Fixed-price journey',
+  distance: 'Route-based pricing',
+  enquiry: 'Tailored on request',
 } as const;
 
-export function TripCard({ trip, variant = 'grid' }: { trip: Trip; variant?: 'grid' | 'list' }) {
-  const isListCard = variant === 'list';
+export function TripCard({ trip }: { trip: Trip }) {
+  const price = trip.pricingMode === 'fixed' && trip.startingFromPriceMinor !== null
+    ? money(trip.startingFromPriceMinor)
+    : trip.pricingMode === 'enquiry' ? 'On request' : 'Quote for your route';
 
   return (
     <Link
       href={`/trips/${trip.slug}`}
-      className={`group flex overflow-hidden rounded-3xl border border-line bg-ink-soft transition duration-500 hover:-translate-y-1 hover:border-gold/50 hover:shadow-gold ${
-        isListCard ? 'flex-col md:min-h-[250px] md:flex-row' : 'flex-col'
-      }`}
+      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#0d1b2a]/10 bg-white shadow-[0_14px_32px_-24px_rgba(13,27,42,0.52)] transition duration-300 hover:-translate-y-1 hover:border-[#f1c75b]/80 hover:shadow-[0_20px_40px_-24px_rgba(13,27,42,0.52)]"
     >
-      <div className={`relative shrink-0 overflow-hidden ${isListCard ? 'aspect-[16/8] md:w-[38%] md:aspect-auto' : 'aspect-[16/9]'}`}>
+      <div className="relative aspect-[4/3] overflow-hidden bg-[#e9e2d5]">
         {trip.coverUrl ? (
-          // External trip images are managed by the API, so a native image avoids a fixed host allow-list.
+          // External trip imagery is managed by the API, so a native image avoids a fixed host allow-list.
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={trip.coverUrl}
-            alt=""
-            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
-          />
+          <img src={trip.coverUrl} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
         ) : (
           <ImagePlaceholder label={trip.title} className="h-full w-full" />
         )}
-        <span className="absolute left-5 top-5 rounded-full border border-gold/40 bg-ink/70 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-gold backdrop-blur">
-          {trip.region}
+        <span className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-[#0d1b2a]/90 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white backdrop-blur-sm">
+          <MapPin size={11} className="text-[#f1c75b]" /> {trip.region}
         </span>
       </div>
 
-      <div className={`flex flex-1 flex-col ${isListCard ? 'p-7 md:p-9' : 'p-8'}`}>
-        <p className="text-[11px] uppercase tracking-[0.3em] text-gold">{pricingLabels[trip.pricingMode]}</p>
-        <div className="mt-5 flex items-start justify-between gap-4">
-          <h2 className={`leading-tight ${isListCard ? 'text-3xl md:text-4xl' : 'text-3xl'}`}>{trip.title}</h2>
-          <ArrowUpRight className="mt-1 shrink-0 text-gold transition group-hover:translate-x-1 group-hover:-translate-y-1" size={19} />
-        </div>
-        <p className="mt-4 text-base text-ivory/80">{trip.subtitle}</p>
-        <p className="mt-4 leading-relaxed text-mute">{trip.summary}</p>
-        <div className="mt-auto flex items-end justify-between gap-5 border-t hairline pt-6">
-          {trip.startingFromPriceMinor !== null ? (
-            <p className="inline-flex items-baseline gap-2 whitespace-nowrap">
-              <span className="text-[10px] uppercase tracking-[0.25em] text-mute">From</span>
-              <span className="font-serif text-2xl text-gold">{money(trip.startingFromPriceMinor)}</span>
-            </p>
-          ) : (
-            <span className="text-xs text-mute">Tailored to your journey</span>
-          )}
-          <span className="text-xs uppercase tracking-[0.25em] text-ivory/60 transition group-hover:text-gold">View trip →</span>
+      <div className="flex flex-1 flex-col px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5">
+        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#9b7012]">{pricingLabels[trip.pricingMode]}</p>
+        <h2 className="mt-3 font-serif text-[28px] font-semibold leading-[0.98] tracking-[-0.015em] text-[#0d1b2a]">{trip.title}</h2>
+        <p className="mt-3 text-[13px] font-semibold leading-relaxed text-[#40516b]">{trip.subtitle}</p>
+        <p className="mt-2 text-[12px] leading-relaxed text-slate-600">{trip.summary}</p>
+
+        <div className="mt-5 flex items-end justify-between gap-3 border-t border-[#0d1b2a]/10 pt-4">
+          <div>
+            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">{trip.pricingMode === 'fixed' ? 'From' : 'Pricing'}</p>
+            <p className="mt-1 font-serif text-2xl font-semibold leading-none text-[#0d1b2a]">{price}</p>
+          </div>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a] transition group-hover:bg-[#e0b54a] group-hover:translate-x-0.5"><ArrowRight size={16} strokeWidth={2.4} /></span>
         </div>
       </div>
     </Link>

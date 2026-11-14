@@ -10,7 +10,7 @@ import type { SiteSettings } from '@/lib/public-config';
 const NAV = [
   { href: '/', label: 'Home' },
   { href: '/fleet', label: 'Our Fleet' },
-  { href: '/airport-transfers', label: 'Services' }, // Renamed to match image
+  { href: '/airport-transfers', label: 'Airport Transfers' },
   { href: '/trips', label: 'Day Trips & Tours' },     // Renamed to match image
   { href: '/about', label: 'About Us' },
   { href: '/contact', label: 'Contact' },
