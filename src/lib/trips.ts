@@ -1,4 +1,5 @@
 import { api } from './api';
+import { tripFaqsFromApi, type TripFaq } from './trip-faqs';
 
 export type TripPricingMode = 'fixed' | 'distance' | 'enquiry';
 export type TripBookingMode = 'online' | 'enquiry';
@@ -62,6 +63,7 @@ export interface TripDetail {
   region: string;
   coverUrl: string | null;
   gallery: TripGalleryImage[];
+  faqs: TripFaq[];
   pricingMode: TripPricingMode;
   booking: TripBooking;
 }
@@ -127,6 +129,7 @@ interface ApiTripDetailData {
   region?: unknown;
   cover_url?: unknown;
   gallery?: unknown;
+  faqs?: unknown;
   pricing_mode?: unknown;
   booking?: unknown;
 }
@@ -372,18 +375,32 @@ function tripDetailFromApi(value: unknown): TripDetail | null {
     region: trip.region,
     coverUrl: typeof trip.cover_url === 'string' && trip.cover_url.length > 0 ? trip.cover_url : null,
     gallery: galleryFromApi(trip.gallery),
+    faqs: tripFaqsFromApi(trip.faqs),
     pricingMode,
     booking,
   };
 }
 
-const allowedTripTags = new Set(['h2', 'h3', 'p', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'br', 'a']);
+const allowedTripTags = new Set(['section', 'article', 'div', 'span', 'img', 'h2', 'h3', 'h4', 'p', 'ul', 'ol', 'li', 'strong', 'b', 'em', 'i', 'br', 'a']);
+const allowedTripClasses = new Set([
+  'tour-overview-section', 'tour-countries-section', 'tour-stops-section',
+  'tour-itinerary-section', 'tour-comfort-section', 'tour-inclusions-section',
+  'section-title', 'section-text', 'country-flags-list', 'country-pill', 'flag-icon',
+  'stops-grid', 'stop-card', 'stop-number', 'stop-image', 'stop-city', 'stop-country',
+  'itinerary-timeline', 'itinerary-item', 'itinerary-time', 'itinerary-desc',
+  'comfort-car', 'comfort-features', 'included-list', 'included-title',
+  'not-included-list', 'not-included-title',
+]);
+
+function htmlAttribute(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
 /**
  * Public trip copy is maintained in the CMS. Keep its useful structure while
  * allowing only a narrow, safe set of tags and HTTPS, HTTP, mailto, or relative links.
  */
-function sanitizeTripHtml(html: string): string {
+export function sanitizeTripHtml(html: string): string {
   return html
     .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/<\/?[a-zA-Z][^>]*>/g, (tag) => {
@@ -394,10 +411,20 @@ function sanitizeTripHtml(html: string): string {
       const name = rawName.toLowerCase();
       if (!allowedTripTags.has(name)) return '';
       if (closing) return `</${name}>`;
-      if (name !== 'a') return `<${name}>`;
-
-      const href = attributes.match(/\bhref\s*=\s*["']([^"']*)["']/i)?.[1]?.trim();
-      return href && /^(https?:\/\/|mailto:|\/)/i.test(href) ? `<a href="${href.replace(/"/g, '&quot;')}">` : '<a>';
+      const attribute = (key: string) => attributes.match(new RegExp(`(?:^|\\s)${key}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, 'i'))?.slice(1).find(value => value !== undefined);
+      const classes = (attribute('class') ?? '').split(/\s+/).filter(value => allowedTripClasses.has(value));
+      const classAttribute = classes.length ? ` class="${classes.join(' ')}"` : '';
+      if (name === 'img') {
+        const src = attribute('src')?.trim();
+        if (!src || !/^(https?:\/\/|\/(?!\/))/i.test(src) || /[\\\u0000-\u001f\u007f]/.test(src)) return '';
+        // Preserve existing entity escapes while escaping literal attribute delimiters.
+        const safeSrc = src.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<img src="${safeSrc}" alt="${htmlAttribute(attribute('alt') ?? '')}" loading="lazy"${classAttribute}>`;
+      }
+      if (name !== 'a') return `<${name}${classAttribute}>`;
+      const href = attribute('href')?.trim();
+      return href && /^(https?:\/\/|mailto:|\/(?!\/))/i.test(href) && !/[\\\u0000-\u001f\u007f]/.test(href)
+        ? `<a href="${htmlAttribute(href)}">` : '<a>';
     });
 }
 

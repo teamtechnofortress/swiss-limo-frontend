@@ -119,6 +119,33 @@ h3.font-black {
   }
 }
 
+/* The trip detail article sits on white; shared rich text also serves dark pages. */
+.trip-detail-page .trip-rich-text,
+.trip-detail-page .trip-rich-text p,
+.trip-detail-page .trip-rich-text li {
+  color: #334155;
+}
+
+.trip-detail-page .trip-rich-text h1,
+.trip-detail-page .trip-rich-text h2,
+.trip-detail-page .trip-rich-text h3,
+.trip-detail-page .trip-rich-text h4,
+.trip-detail-page .trip-rich-text strong {
+  color: #0d1b2a;
+}
+
+.trip-detail-page .trip-rich-text a {
+  color: #865f00;
+}
+
+.trip-detail-page .trip-rich-text p:has(> strong) {
+  background-color: #f8fafc;
+}
+
+.trip-detail-page aside .text-mute {
+  color: #cbd5e1;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
