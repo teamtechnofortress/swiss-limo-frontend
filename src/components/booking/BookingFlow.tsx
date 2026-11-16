@@ -10,6 +10,7 @@ import { PlaceField } from './PlaceField';
 import { OfferCard } from './OfferCard';
 import { Turnstile } from './Turnstile';
 import { CustomerDetailsForm } from './CustomerDetailsForm';
+import { BookingProgress } from './BookingProgress';
 import { api, ApiError } from '@/lib/api';
 import { addDays, formatDateTime, money, zurichLocalToIso, zurichToday } from '@/lib/format';
 import { createPublicBooking, resolveCheckoutUrl } from '@/lib/public-booking';
@@ -240,39 +241,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
 
   return (
     <div className="grid w-full max-w-full min-w-0 grid-cols-[minmax(0,1fr)] items-start gap-x-6 gap-y-4 lg:grid-cols-12">
-      <div ref={flowTopRef} className="relative isolate mx-auto w-full max-w-5xl scroll-mt-28 rounded-2xl border-2 border-gray-200 bg-white px-1 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:px-4 md:px-8 lg:col-span-12">
-   
-   <ol className="flex items-center justify-between w-full" aria-label="Booking steps">
-             {flowSteps.map(({ step: stepNumber, label }, index) => {
-              const done = step > stepNumber;
-              const current = step === stepNumber;
-
-              return (
-                <li key={label} className="flex min-w-0 flex-1 items-start justify-center relative" aria-current={current ? 'step' : undefined}>
-                  <div className="relative z-10 flex min-w-0 flex-col items-center px-1 sm:px-2">
-                    <span
-                      className={`flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-bold ${
-                        current
-                          ? 'border-[#eab308] bg-[#eab308] text-white'
-                          : done
-                            ? 'border-[#0f172a] bg-[#0f172a] text-white'
-                            : 'border-gray-300 bg-gray-300 text-gray-600'
-                      }`}
-                    >
-                      {done ? <Check size={12} /> : index + 1}
-                    </span>
-                    <span className={`mt-1 min-h-[28px] sm:min-h-0 text-center text-[9px] leading-[14px] sm:text-[10px] md:text-[11px] font-semibold ${current || done ? 'text-[#0f172a]' : 'text-gray-500'}`}>
-                      {label}
-                    </span>
-                  </div>
-                  {index < flowSteps.length - 1 && (
-                    <div aria-hidden="true" className={`absolute top-3 left-[50%] w-full h-[2px] z-0 ${done ? 'bg-[#0f172a]' : 'bg-gray-200'}`} />
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </div>
+      <div ref={flowTopRef} className="scroll-mt-28 lg:col-span-12">
+        <BookingProgress
+          steps={flowSteps.map(({ step: id, label }) => ({ id, label }))}
+          currentStep={step}
+        />
+      </div>
 
       <div className="flex w-full max-w-full min-w-0 flex-col lg:col-span-8">
         {error && (

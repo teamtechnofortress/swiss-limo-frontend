@@ -35,6 +35,7 @@ export function CustomerDetailsForm({
   onPaymentChange,
   turnstileSiteKey,
   onTurnstileToken,
+  turnstileWidgetKey,
   onSubmit,
   onBack,
   busy,
@@ -52,6 +53,8 @@ export function CustomerDetailsForm({
   /** Used by the trip booking flow; the main booking flow verifies on its review step. */
   turnstileSiteKey?: string;
   onTurnstileToken?: (token: string | null) => void;
+  /** Changes after a failed protected submission to request a fresh single-use token. */
+  turnstileWidgetKey?: string | number;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onBack: () => void;
   busy: boolean;
@@ -123,7 +126,7 @@ export function CustomerDetailsForm({
       {turnstileSiteKey && onTurnstileToken && (
         <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
           <p className="mb-2 text-[11px] font-semibold text-[#59430b]">Security verification is required before confirming your booking.</p>
-          <Turnstile onToken={onTurnstileToken} siteKey={turnstileSiteKey} />
+          <Turnstile key={turnstileWidgetKey} onToken={onTurnstileToken} siteKey={turnstileSiteKey} theme="light" />
         </div>
       )}
 
