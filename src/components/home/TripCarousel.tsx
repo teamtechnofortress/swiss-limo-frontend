@@ -330,7 +330,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
           <div className="mt-7 flex flex-col gap-6 md:mt-8 md:gap-7">
             {/* Big detail card — all slides share one grid cell, so height never jumps */}
             <div
-              className="grid w-full max-w-[530px] rounded-[22px] border border-white/20 bg-[linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.06))] p-5 shadow-[0_20px_55px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.14)] backdrop-blur-md md:p-6"
+              className="grid w-full max-w-[530px] rounded-[22px] border border-white/20 bg-[linear-gradient(135deg,#b48b22,hsla(0,0%,100%,.06))] p-5 shadow-[0_20px_55px_rgba(0,0,0,.42),inset_0_1px_0_rgba(255,255,255,.14)] backdrop-blur-md md:p-6"
               aria-live={canPlay ? 'off' : 'polite'}
             >
               {list.map((t, i) => {
@@ -346,7 +346,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                   >
                     <div className="tc-rise flex flex-wrap items-center gap-2" style={stagger(0)}>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/90 ring-1 ring-white/10">
-                        <MapPin size={12} className="text-[#f1c75b]" /> {t.region}
+                        <MapPin size={12} className="text-white" /> {t.region}
                       </span>
                     </div>
 

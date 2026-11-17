@@ -177,13 +177,6 @@ export default async function HomePage() {
 
           {/* --- OUR LUXURY FLEET --- */}
       <section className="relative overflow-hidden bg-[#f8f3e9] pt-8 pb-12 md:pt-12 md:pb-16">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat  pointer-events-none scale-105"
-          style={{ backgroundImage: `url('/images/home/homepage_fleet_background.png')` }}
-          aria-hidden="true"
-        />
-                <div className="absolute inset-0 bg-gradient-to-b from-[#f8f3e9]/60 via-transparent to-[#f8f3e9]/90 pointer-events-none" aria-hidden="true" />
-
         <Container className="relative z-10">
           <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>

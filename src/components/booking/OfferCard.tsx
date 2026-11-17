@@ -26,22 +26,22 @@ export function OfferCard({
           : 'border-gray-200 bg-gray-200 hover:border-[#eab308]/50 hover:bg-gray-50'
       }`}
     >
-      <div className="flex min-w-0 flex-1 items-center gap-2 bg-gray-100 sm:gap-3">
-        <div className="h-28 w-[42%] shrink-0 overflow-hidden bg-gray-200 sm:h-36 md:w-44 xl:w-60 lg:h-[129px]">
+      <div className="flex min-w-0 flex-1 flex-col items-stretch bg-gray-100 md:flex-row md:items-center md:gap-3">
+        <div className="w-full shrink-0 overflow-hidden bg-gray-200 md:h-36 md:w-44 lg:h-[129px] xl:w-60">
           {offer.thumbnail_url ? (
             <img
               src={offer.thumbnail_url}
               alt={offer.name}
-              className="h-full w-full object-cover bg-gray-100"
+              className="block h-auto w-full bg-gray-100 object-contain md:h-full md:object-cover"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center">
+            <div className="flex h-44 w-full items-center justify-center md:h-full">
               <Car className="text-gray-400" size={28} aria-hidden="true" />
             </div>
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col break-words py-3 pr-2 sm:py-5 lg:py-2">
+        <div className="flex min-w-0 flex-1 flex-col break-words px-4 py-3 md:py-5 md:pl-0 md:pr-2 lg:py-2">
           <p className="text-[10px] sm:text-[12px] uppercase tracking-wider text-gray-500 font-semibold mb-1">{category}</p>
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600">
             <span className="flex items-center gap-1">
