@@ -18,7 +18,7 @@ import { money } from '@/lib/format';
 import type { FeaturedTrip } from '@/lib/trips';
 
 /* ------------------------------------------------------------------ */
-/*  Types & data                                                       */
+/*  Data & timing                                                      */
 /* ------------------------------------------------------------------ */
 
 const FALLBACK: FeaturedTrip[] = [
@@ -29,11 +29,26 @@ const FALLBACK: FeaturedTrip[] = [
 ];
 
 const SLIDE_MS = 6500; // time each trip stays on screen
-const SETTLE_MS = 880; // slightly longer than the rail's transition
+const STEP_MS = 850; // rail slide duration (must match the .tc-track transition)
+const SETTLE_PAD_MS = 50; // safety margin after a slide before snapping back
+const FADE_OUT_MS = 160; // rail fade that hides the off-screen re-sequencing
+const RESEQUENCE_GAP_MS = 60; // lets the browser paint the re-sequenced rail before it moves
+const HERO_WAIT_MS = 350; // max time we wait for a hero image before switching anyway
 const BACKGROUND_EXIT_MS = 1150;
-const NAVIGATION_LOCK_MS = 950;
-const DESKTOP_VISIBLE_CARDS = 5;
-const MOBILE_VISIBLE_CARDS = 2;
+const VISIBLE_MAX = 5; // cards visible in the rail on desktop
+
+/**
+ * A "hop" is how we jump to a card that is NOT the next one:
+ *  out  -> rail fades out (natural order, still on screen)
+ *  swap -> rail is invisible; forward sequence is rebuilt as [from, target, target+1, ...]
+ *  in   -> rail fades in and slides exactly ONE step, so the target lands first
+ * Afterwards we snap back to the natural order (identical visible window = no flicker).
+ */
+type Hop = { target: number; from: number; stage: 'out' | 'swap' | 'in' };
+
+const mod = (v: number, m: number) => ((v % m) + m) % m;
+const pad = (v: number) => String(v).padStart(2, '0');
+const stagger = (i: number) => ({ '--i': i }) as CSSProperties;
 
 function largeImage(trip: FeaturedTrip): string {
   return trip.originalCoverUrl ?? trip.coverUrl ?? trip.thumbnailUrl ?? '/images/home/tour-lucerne.jpg';
@@ -53,11 +68,44 @@ function priceDetails(trip: FeaturedTrip): { label: string; value: string } {
     : { label: 'Pricing', value: 'Route based' };
 }
 
-const pad = (v: number) => String(v).padStart(2, '0');
-const stagger = (i: number) => ({ '--i': i }) as CSSProperties;
+/* ------------------------------------------------------------------ */
+/*  Image loading helpers                                              */
+/* ------------------------------------------------------------------ */
+
+/** Module-level cache: each hero is requested + decoded once, even across remounts. */
+const heroLoads = new Map<string, Promise<void>>();
+
+function loadHero(src: string): Promise<void> {
+  let pending = heroLoads.get(src);
+  if (!pending) {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+    const decoded = typeof img.decode === 'function' ? img.decode() : Promise.resolve();
+    pending = decoded.then(
+      () => undefined,
+      () => undefined, // a failed image must never block navigation
+    );
+    heroLoads.set(src, pending);
+  }
+  return pending;
+}
+
+function whenIdle(fn: () => void, timeout = 1200): () => void {
+  const w = window as unknown as {
+    requestIdleCallback?: (cb: () => void, options?: { timeout: number }) => number;
+    cancelIdleCallback?: (id: number) => void;
+  };
+  if (w.requestIdleCallback) {
+    const id = w.requestIdleCallback(fn, { timeout });
+    return () => w.cancelIdleCallback?.(id);
+  }
+  const id = window.setTimeout(fn, 300);
+  return () => window.clearTimeout(id);
+}
 
 /* ------------------------------------------------------------------ */
-/*  Styles (keyframe-free: everything is a transition)                 */
+/*  Styles (keyframe-free except the progress bar)                     */
 /* ------------------------------------------------------------------ */
 
 const STYLES = `
@@ -77,14 +125,21 @@ const STYLES = `
   transition:opacity 800ms var(--tc-ease) calc(200ms + var(--i,0) * 80ms),
              transform 800ms var(--tc-ease) calc(200ms + var(--i,0) * 80ms)}
 
-/* Rail: selection stays in its visible position; cloned cards provide a seamless loop. */
+/* Rail */
 .tc-rail{--tc-gap:10px;--tc-w:calc(50% - 5px)}
 @media (min-width:768px){.tc-rail{--tc-gap:12px;--tc-w:calc(20% - 9.6px)}}
 .tc-track{display:flex;gap:var(--tc-gap);
   transform:translate3d(calc(var(--tc-idx,0) * -1 * (var(--tc-w) + var(--tc-gap))),0,0);
-  transition:transform 850ms var(--tc-ease)}
-.tc-track[data-snap="true"]{transition:none}
+  transition:transform ${STEP_MS}ms var(--tc-ease),opacity 450ms ease}
 .tc-item{width:var(--tc-w);flex:none}
+
+/* Hop: the rail is hidden while its forward sequence is rebuilt */
+.tc-track[data-fade="true"]{opacity:0;transition:opacity ${FADE_OUT_MS}ms ease}
+
+/* Snap: reposition instantly, including the highlight ring on the cards */
+.tc-track[data-snap="true"],
+.tc-track[data-snap="true"] .tc-item,
+.tc-track[data-snap="true"] .tc-item *{transition:none!important}
 
 /* CSS owns progress, avoiding a requestAnimationFrame loop while idle. */
 @keyframes tc-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -104,22 +159,19 @@ const STYLES = `
 /* ------------------------------------------------------------------ */
 
 export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
-  const list = useMemo<FeaturedTrip[]>(() => trips && trips.length > 0 ? trips : FALLBACK, [trips]);
-
+  const list = useMemo<FeaturedTrip[]>(() => (trips && trips.length > 0 ? trips : FALLBACK), [trips]);
   const n = list.length;
+  const multi = n > 1;
 
-  // Keep enough cloned cards to fill a wide rail at the loop boundary, but no more.
-  const track = useMemo(() => {
-    const sets = 2 + Math.ceil(5 / n);
-    return Array.from({ length: n * sets }, (_, v) => list[v % n]);
-  }, [list, n]);
+  // Enough cloned cards to fill a wide rail at the loop boundary, but no more.
+  const sets = 2 + Math.ceil(VISIBLE_MAX / n);
+  const total = n * sets;
 
-  // These deliberately remain separate: a selected thumbnail stays in place until it
-  // would leave the visible window, rather than jumping to the rail's first position.
-  const [activeIndex, setActiveIndex] = useState(n);
-  const [railStart, setRailStart] = useState(n);
-  const [visibleCards, setVisibleCards] = useState(DESKTOP_VISIBLE_CARDS);
+  // `idx` is the rail position of the lead card. The middle copy starts at `n`.
+  const [idx, setIdx] = useState(n);
   const [snap, setSnap] = useState(false);
+  const [hop, setHop] = useState<Hop | null>(null);
+  const [locked, setLocked] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [userPaused, setUserPaused] = useState(false);
@@ -127,63 +179,184 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
   const [hidden, setHidden] = useState(false);
   const [inView, setInView] = useState(false);
   const [leavingBackground, setLeavingBackground] = useState<number | null>(null);
-  const [navigationLocked, setNavigationLocked] = useState(false);
 
   const root = useRef<HTMLElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
-  const navigationLock = useRef(false);
-  const navigationTimer = useRef<number | null>(null);
+  const busy = useRef(false);
+  const alive = useRef(true);
+  const timers = useRef<number[]>([]);
 
-  const active = ((activeIndex % n) + n) % n;
-  const multi = n > 1;
-  const canPlay = multi && inView && !hovered && !focused && !userPaused && !reduced && !hidden;
+  // The detail card follows the *target* immediately, even while the rail is still staging.
+  const active = hop ? hop.target : mod(idx, n);
+  const fade = hop !== null && hop.stage !== 'in';
 
-  const beginNavigation = useCallback(() => {
-    navigationLock.current = true;
-    setNavigationLocked(true);
-    setLeavingBackground(active);
+  // Trip index shown at every rail position. Natural order unless a hop is staging.
+  const sequence = useMemo(() => {
+    const seq = Array.from({ length: total }, (_, v) => v % n);
+    if (hop && hop.stage !== 'out') {
+      // Rebuild everything after the lead card so the target comes right next to it.
+      for (let v = hop.from + 1; v < total; v++) {
+        seq[v] = (hop.target + (v - hop.from - 1)) % n;
+      }
+    }
+    return seq;
+  }, [hop, n, total]);
 
-    if (navigationTimer.current !== null) window.clearTimeout(navigationTimer.current);
-    navigationTimer.current = window.setTimeout(() => {
-      navigationLock.current = false;
-      navigationTimer.current = null;
-      setNavigationLocked(false);
-    }, NAVIGATION_LOCK_MS);
-  }, [active]);
+  const canPlay = multi && inView && !hovered && !focused && !userPaused && !reduced && !hidden && !hop;
 
-  const moveBy = useCallback((amount: 1 | -1) => {
-    if (!multi || navigationLock.current) return;
+  /* ---------------------------- scheduling ---------------------------- */
 
-    const nextActiveIndex = activeIndex + amount;
-    let nextRailStart = railStart;
-    if (nextActiveIndex < railStart) nextRailStart = nextActiveIndex;
-    if (nextActiveIndex >= railStart + visibleCards) nextRailStart = nextActiveIndex - (visibleCards - 1);
+  const later = useCallback((fn: () => void, ms: number) => {
+    const id = window.setTimeout(() => {
+      timers.current = timers.current.filter((t) => t !== id);
+      fn();
+    }, ms);
+    timers.current.push(id);
+  }, []);
 
-    beginNavigation();
-    setActiveIndex(nextActiveIndex);
-    setRailStart(nextRailStart);
-  }, [activeIndex, beginNavigation, multi, railStart, visibleCards]);
-  const next = useCallback(() => moveBy(1), [moveBy]);
-  const prev = useCallback(() => moveBy(-1), [moveBy]);
+  const clearTimers = useCallback(() => {
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [];
+  }, []);
 
-  const select = useCallback((nextIndex: number) => {
-    if (!multi || navigationLock.current || nextIndex === activeIndex) return;
-    beginNavigation();
-    setActiveIndex(nextIndex);
-  }, [activeIndex, beginNavigation, multi]);
+  const afterPaint = useCallback((fn: () => void) => {
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (alive.current) fn();
+      }),
+    );
+  }, []);
+
+  const lock = useCallback(() => {
+    busy.current = true;
+    setLocked(true);
+  }, []);
+
+  const unlock = useCallback(() => {
+    busy.current = false;
+    setLocked(false);
+  }, []);
+
+  /** Resolves when the hero is decoded, or after HERO_WAIT_MS, whichever comes first. */
+  const heroReady = useCallback(
+    (trip: FeaturedTrip) =>
+      new Promise<void>((resolve) => {
+        later(resolve, HERO_WAIT_MS);
+        void loadHero(largeImage(trip)).then(resolve);
+      }),
+    [later],
+  );
+
+  /* ---------------------------- navigation ---------------------------- */
+
+  /** Snap the rail back to the natural order, centred on `trip`. Visually identical, so no flicker. */
+  const settle = useCallback(
+    (trip: number) => {
+      setSnap(true);
+      setHop(null);
+      setIdx(n + trip);
+      afterPaint(() => {
+        setSnap(false);
+        unlock();
+      });
+    },
+    [afterPaint, n, unlock],
+  );
+
+  /** Natural one-card move (Next, Prev, autoplay, or selecting the card right after the current one). */
+  const step = useCallback(
+    (dir: 1 | -1) => {
+      if (!multi || busy.current) return;
+      const target = mod(active + dir, n);
+      lock();
+      void heroReady(list[target]).then(() => {
+        if (!alive.current) return;
+        setLeavingBackground(active);
+        if (reduced) {
+          settle(target);
+          return;
+        }
+        setIdx((i) => i + dir);
+        later(() => settle(target), STEP_MS + SETTLE_PAD_MS);
+      });
+    },
+    [active, heroReady, later, list, lock, multi, n, reduced, settle],
+  );
+
+  /** Jump to any other card: rebuild the forward sequence off-screen, then slide ONE step. */
+  const hopTo = useCallback(
+    (target: number) => {
+      if (!multi || busy.current || target === active) return;
+      const from = idx;
+      lock();
+      void heroReady(list[target]).then(() => {
+        if (!alive.current) return;
+        setLeavingBackground(active);
+
+        if (reduced) {
+          settle(target);
+          return;
+        }
+
+        // 1) Top area updates now (active follows hop.target); the rail fades out.
+        setHop({ target, from, stage: 'out' });
+
+        // 2) Rail is invisible: rebuild the forward sequence without any transition.
+        later(() => {
+          setSnap(true);
+          setHop({ target, from, stage: 'swap' });
+        }, FADE_OUT_MS);
+
+        // 3) Fade back in while sliding exactly one step; the target lands first.
+        later(() => {
+          setSnap(false);
+          setIdx(from + 1);
+          setHop({ target, from, stage: 'in' });
+        }, FADE_OUT_MS + RESEQUENCE_GAP_MS);
+
+        // 4) Back to the natural order (same visible window).
+        later(() => settle(target), FADE_OUT_MS + RESEQUENCE_GAP_MS + STEP_MS + SETTLE_PAD_MS);
+      });
+    },
+    [active, heroReady, idx, later, list, lock, multi, reduced, settle],
+  );
+
+  const next = useCallback(() => step(1), [step]);
+  const prev = useCallback(() => step(-1), [step]);
+
+  const select = useCallback(
+    (target: number) => {
+      if (target === active) return;
+      if (mod(target - active, n) === 1) step(1);
+      else hopTo(target);
+    },
+    [active, hopTo, n, step],
+  );
+
+  const warm = useCallback((trip: FeaturedTrip) => {
+    void loadHero(largeImage(trip));
+  }, []);
+
+  /* ------------------------------ effects ----------------------------- */
+
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      clearTimers();
+    };
+  }, [clearTimers]);
 
   /* Reset when the data length changes */
   useEffect(() => {
-    setActiveIndex(n);
-    setRailStart(n);
+    clearTimers();
+    setIdx(n);
+    setSnap(false);
+    setHop(null);
     setLeavingBackground(null);
-    navigationLock.current = false;
-    setNavigationLocked(false);
-  }, [n]);
-
-  useEffect(() => () => {
-    if (navigationTimer.current !== null) window.clearTimeout(navigationTimer.current);
-  }, []);
+    busy.current = false;
+    setLocked(false);
+  }, [n, clearTimers]);
 
   /* Environment: reduced motion, tab visibility, and viewport visibility. */
   useEffect(() => {
@@ -200,23 +373,6 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
   }, []);
 
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)');
-    const sync = () => setVisibleCards(mq.matches ? DESKTOP_VISIBLE_CARDS : MOBILE_VISIBLE_CARDS);
-    sync();
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
-
-  /* Keep the selected card visible if the viewport changes between mobile and desktop. */
-  useEffect(() => {
-    setRailStart((currentStart) => {
-      if (activeIndex < currentStart) return activeIndex;
-      if (activeIndex >= currentStart + visibleCards) return activeIndex - (visibleCards - 1);
-      return currentStart;
-    });
-  }, [visibleCards]);
-
-  useEffect(() => {
     const element = root.current;
     if (!element) return;
     const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.15 });
@@ -224,27 +380,25 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
     return () => observer.disconnect();
   }, []);
 
-  /* Preload only the next likely hero image once the browser has spare time. */
+  /* Warm every (small) thumbnail once, so re-sequencing the rail never shows a blank card. */
   useEffect(() => {
     if (!inView || !multi) return;
-    const nextTrip = list[(active + 1) % n];
-    const source = nextTrip ? largeImage(nextTrip) : null;
-    if (!source) return;
-    const preload = () => {
-      const image = new Image();
-      image.decoding = 'async';
-      image.src = source;
-    };
-    const idleWindow = window as unknown as {
-      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    if (idleWindow.requestIdleCallback) {
-      const idle = idleWindow.requestIdleCallback(preload, { timeout: 1200 });
-      return () => idleWindow.cancelIdleCallback?.(idle);
-    }
-    const timer = window.setTimeout(preload, 300);
-    return () => window.clearTimeout(timer);
+    return whenIdle(() => {
+      list.forEach((trip) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = thumbnailImage(trip);
+      });
+    });
+  }, [inView, list, multi]);
+
+  /* Preload only the next likely hero; others are warmed on hover/focus. */
+  useEffect(() => {
+    if (!inView || !multi) return;
+    const upNext = list[(active + 1) % n];
+    return whenIdle(() => {
+      void loadHero(largeImage(upNext));
+    });
   }, [active, inView, list, multi, n]);
 
   /* Autoplay does no per-frame JavaScript and stops entirely outside the viewport. */
@@ -261,21 +415,8 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
     return () => window.clearTimeout(timer);
   }, [active, leavingBackground]);
 
-  /* Rebase the cloned rail after it slides beyond the middle copies; this is never visible. */
-  useEffect(() => {
-    if (!multi || (railStart >= n && railStart < 2 * n)) return;
-    const t = window.setTimeout(() => {
-      const selectedOffset = activeIndex - railStart;
-      const centeredStart = n + (((railStart % n) + n) % n);
-      setSnap(true);
-      setRailStart(centeredStart);
-      setActiveIndex(centeredStart + selectedOffset);
-      requestAnimationFrame(() => requestAnimationFrame(() => setSnap(false)));
-    }, reduced ? 0 : SETTLE_MS);
-    return () => window.clearTimeout(t);
-  }, [activeIndex, n, multi, railStart, reduced]);
+  /* ------------------------------ input ------------------------------- */
 
-  /* Input: keyboard + touch swipe */
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'ArrowRight') next();
     if (e.key === 'ArrowLeft') prev();
@@ -295,10 +436,9 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
   };
 
   const ctrl =
-    'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95 disabled:pointer-events-none disabled:opacity-45';
-  const backgroundIndexes = leavingBackground === null || leavingBackground === active
-    ? [active]
-    : [leavingBackground, active];
+    'flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/10 text-white backdrop-blur-md transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 active:scale-95 aria-disabled:pointer-events-none aria-disabled:opacity-45';
+  const backgroundIndexes =
+    leavingBackground === null || leavingBackground === active ? [active] : [leavingBackground, active];
 
   return (
     <section
@@ -324,16 +464,16 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
         {backgroundIndexes.map((i) => {
           const t = list[i];
           return (
-          <img
-            key={`${t.slug}-${i}`}
-            src={largeImage(t)}
-            alt=""
-            draggable={false}
-            data-active={i === active}
-            className="tc-bg h-full w-full object-cover"
-            decoding="async"
-            loading={i === active ? 'eager' : 'lazy'}
-          />
+            <img
+              key={`${t.slug}-${i}`}
+              src={largeImage(t)}
+              alt=""
+              draggable={false}
+              data-active={i === active}
+              className="tc-bg h-full w-full object-cover"
+              decoding="async"
+              loading={i === active ? 'eager' : 'lazy'}
+            />
           );
         })}
         <div className="absolute inset-0 z-[2] bg-[linear-gradient(90deg,rgba(3,25,46,.9)_0%,rgba(3,25,46,.55)_48%,rgba(3,25,46,.12)_100%)]" />
@@ -435,7 +575,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
               })}
             </div>
 
-            {/* Rail: slides in sync with the card above */}
+            {/* Rail: always moves exactly one step, whatever card was selected */}
             {multi && (
               <div className="tc-rail relative left-1/2 w-screen -translate-x-1/2 px-6 lg:px-10">
                 <div className="mb-2.5 flex items-center justify-between">
@@ -452,26 +592,33 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                     >
                       {userPaused ? <Play size={14} fill="currentColor" /> : <Pause size={14} fill="currentColor" />}
                     </button>
-                    <button type="button" onClick={prev} className={ctrl} aria-label="Previous trip" disabled={navigationLocked}>
+                    <button type="button" onClick={prev} className={ctrl} aria-label="Previous trip" aria-disabled={locked || undefined}>
                       <ChevronLeft size={18} />
                     </button>
-                    <button type="button" onClick={next} className={ctrl} aria-label="Next trip" disabled={navigationLocked}>
+                    <button type="button" onClick={next} className={ctrl} aria-label="Next trip" aria-disabled={locked || undefined}>
                       <ChevronRight size={18} />
                     </button>
                   </div>
                 </div>
 
-                <div className="overflow-hidden py-1">
-                  <div className="tc-track" data-snap={snap} style={{ '--tc-idx': railStart } as CSSProperties}>
-                    {track.map((t, v) => {
-                      const isActive = v === activeIndex;
+                <div className="relative overflow-hidden px-1 py-1">
+                  <div
+                    className="tc-track"
+                    data-snap={snap}
+                    data-fade={fade}
+                    style={{ '--tc-idx': idx } as CSSProperties}
+                  >
+                    {sequence.map((tripIndex, v) => {
+                      const t = list[tripIndex];
+                      const isActive = v === idx;
                       const primary = v >= n && v < 2 * n; // only the middle copy is exposed to assistive tech
                       return (
                         <button
                           key={v}
                           type="button"
-                          onClick={() => select(v)}
-                          disabled={navigationLocked}
+                          onClick={() => select(tripIndex)}
+                          onPointerEnter={() => tripIndex !== active && warm(t)}
+                          onFocus={() => tripIndex !== active && warm(t)}
                           aria-label={`Show ${t.title}`}
                           aria-current={isActive || undefined}
                           aria-hidden={!primary || undefined}
@@ -486,7 +633,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                             src={thumbnailImage(t)}
                             alt=""
                             draggable={false}
-                            loading="lazy"
+                            loading="eager"
                             decoding="async"
                             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
@@ -495,15 +642,22 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                               {t.title}
                             </span>
                           </span>
-                          {isActive && !reduced && (
-                            <span className="absolute inset-x-0 bottom-0 h-[3px] bg-white/25">
-                              <span key={active} data-playing={canPlay} className="tc-progress block h-full w-full bg-[#f1c75b]" />
-                            </span>
-                          )}
                         </button>
                       );
                     })}
                   </div>
+
+                  {/* One progress bar pinned to the lead slot, so it never remounts when the track re-sequences */}
+                  {!reduced && (
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-y-1 left-1 z-10 w-[var(--tc-w)] overflow-hidden rounded-[14px]"
+                    >
+                      <span className="absolute inset-x-0 bottom-0 h-[3px] bg-white/25">
+                        <span key={active} data-playing={canPlay} className="tc-progress block h-full w-full bg-[#f1c75b]" />
+                      </span>
+                    </span>
+                  )}
                 </div>
               </div>
             )}
