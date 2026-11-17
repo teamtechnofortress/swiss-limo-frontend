@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { ArrowRight, Luggage, Users } from 'lucide-react';
 import { ImagePlaceholder } from '@/components/ui/primitives';
-import { CATEGORY_LABEL, pricePerKm } from '@/lib/format';
+import { CATEGORY_LABEL, money } from '@/lib/format';
 import type { Vehicle } from '@/lib/types';
 
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const cover = vehicle.media.cover;
   const image = cover?.thumbnail_url ?? cover?.url ?? vehicle.images[0];
+  const hasMinimumFare = vehicle.minimum_fare !== null;
+  const hasPerKmRate = vehicle.price_per_km !== null;
 
   return (
     <Link
@@ -28,9 +30,39 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f8f3e9] px-2.5 py-1.5"><Users size={13} className="text-[#9b7012]" />Up to {vehicle.passenger_capacity}</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f8f3e9] px-2.5 py-1.5"><Luggage size={13} className="text-[#9b7012]" />{vehicle.luggage_capacity} bags</span>
         </div>
-        <div className="mt-5 flex items-end justify-between gap-3 border-t border-[#0d1b2a]/10 pt-4">
-          <div><p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-500">From</p><p className="mt-1 font-serif text-xl font-semibold leading-none text-[#0d1b2a]">{pricePerKm(vehicle.price_per_km)}</p></div>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a] transition group-hover:translate-x-0.5 group-hover:bg-[#e0b54a]"><ArrowRight size={16} strokeWidth={2.4} /></span>
+        <div className="mt-5 border-t border-[#0d1b2a]/10 pt-4">
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              {hasMinimumFare || hasPerKmRate ? (
+                <>
+                  <div className={`grid gap-4 ${hasMinimumFare && hasPerKmRate ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                    {hasMinimumFare && (
+                      <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Minimum booking</p>
+                        <p className="mt-1 font-serif text-xl font-semibold leading-none text-[#0d1b2a]">{money(vehicle.minimum_fare!)}</p>
+                      </div>
+                    )}
+                    {hasPerKmRate && (
+                      <div className={hasMinimumFare ? 'border-l border-[#0d1b2a]/10 pl-4' : ''}>
+                        <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-500">Rate per km</p>
+                        <p className="mt-1 font-serif text-xl font-semibold leading-none text-[#0d1b2a]">
+                          {money(vehicle.price_per_km!)} <span className="font-sans text-[11px] font-semibold text-slate-500">/ km</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {hasMinimumFare && hasPerKmRate && (
+                    <p className="mt-3 max-w-[17rem] text-[10px] leading-relaxed text-slate-500">
+                      The minimum applies only when the distance-based fare is lower; it is not an extra charge.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="font-serif text-xl font-semibold leading-none text-[#0d1b2a]">Price on request</p>
+              )}
+            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a] transition group-hover:translate-x-0.5 group-hover:bg-[#e0b54a]"><ArrowRight size={16} strokeWidth={2.4} /></span>
+          </div>
         </div>
       </div>
     </Link>

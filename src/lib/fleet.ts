@@ -13,6 +13,7 @@ interface ApiVehicle {
   luggage_capacity?: unknown;
   price_per_km?: unknown;
   minimum_fare?: unknown;
+  pricing?: unknown;
   amenities?: unknown;
   media?: unknown;
   image?: unknown;
@@ -78,6 +79,7 @@ function vehicleFromApi(vehicle: ApiVehicle): Vehicle | null {
   }
 
   const media = mediaFromApi(vehicle.media);
+  const pricing = isRecord(vehicle.pricing) ? vehicle.pricing : null;
   const legacyImageUrl = isRecord(vehicle.image) ? mediaUrl(vehicle.image.url) : null;
   const legacyImageUrls = Array.isArray(vehicle.images)
     ? vehicle.images.flatMap((image) => typeof image === 'string' ? [mediaUrl(image)].filter((url): url is string => url !== null) : [])
@@ -96,7 +98,7 @@ function vehicleFromApi(vehicle: ApiVehicle): Vehicle | null {
     passenger_capacity: numberOrNull(vehicle.passenger_capacity) ?? 0,
     luggage_capacity: numberOrNull(vehicle.luggage_capacity) ?? 0,
     price_per_km: numberOrNull(vehicle.price_per_km),
-    minimum_fare: numberOrNull(vehicle.minimum_fare),
+    minimum_fare: numberOrNull(vehicle.minimum_fare) ?? numberOrNull(pricing?.minimum_fare_minor),
     amenities: Array.isArray(vehicle.amenities)
       ? vehicle.amenities.filter((amenity): amenity is string => typeof amenity === 'string')
       : [],
