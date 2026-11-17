@@ -1,7 +1,7 @@
 'use client';
 
 import { type FormEvent, type ReactNode, useState } from 'react';
-import { CalendarDays, CheckCircle2, LoaderCircle, Luggage, Mail, MapPin, MessageSquare, Phone, Send, Users } from 'lucide-react';
+import { CalendarDays, CheckCircle2, LoaderCircle, Luggage, Mail, MapPin, MessageSquare, Phone, Send, ShieldCheck, Users } from 'lucide-react';
 import { Turnstile } from '@/components/booking/Turnstile';
 import { api, ApiError } from '@/lib/api';
 
@@ -224,7 +224,22 @@ export function EnquiryForm({
         <textarea className={`${inputClass} h-auto min-h-32 resize-y py-3.5`} name="message" placeholder="Tell us about your journey or request..." required />
       </FormField>
 
-      {turnstileEnabled && <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} />}
+      {turnstileEnabled && (
+        <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="flex min-w-0 items-start gap-2">
+              <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#d99b14]" />
+              <div>
+                <p className="text-[11px] font-semibold text-[#59430b]">Security verification is required before sending your enquiry.</p>
+                <p className="mt-0.5 text-[10px] text-[#806522]">This helps protect our team from automated messages.</p>
+              </div>
+            </div>
+            <div className="flex justify-center sm:justify-end">
+              <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} theme="light" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700" role="alert">{error}</p>}
 

@@ -32,6 +32,8 @@ const SLIDE_MS = 6500; // time each trip stays on screen
 const SETTLE_MS = 880; // slightly longer than the rail's transition
 const BACKGROUND_EXIT_MS = 1150;
 const NAVIGATION_LOCK_MS = 950;
+const DESKTOP_VISIBLE_CARDS = 5;
+const MOBILE_VISIBLE_CARDS = 2;
 
 function largeImage(trip: FeaturedTrip): string {
   return trip.originalCoverUrl ?? trip.coverUrl ?? trip.thumbnailUrl ?? '/images/home/tour-lucerne.jpg';
@@ -75,16 +77,14 @@ const STYLES = `
   transition:opacity 800ms var(--tc-ease) calc(200ms + var(--i,0) * 80ms),
              transform 800ms var(--tc-ease) calc(200ms + var(--i,0) * 80ms)}
 
-/* Rail: the active trip always slides to the left edge, list loops forever */
-.tc-rail{--tc-w:162px;--tc-gap:10px}
-@media (min-width:768px){.tc-rail{--tc-w:188px;--tc-gap:12px}}
+/* Rail: selection stays in its visible position; cloned cards provide a seamless loop. */
+.tc-rail{--tc-gap:10px;--tc-w:calc(50% - 5px)}
+@media (min-width:768px){.tc-rail{--tc-gap:12px;--tc-w:calc(20% - 9.6px)}}
 .tc-track{display:flex;gap:var(--tc-gap);
   transform:translate3d(calc(var(--tc-idx,0) * -1 * (var(--tc-w) + var(--tc-gap))),0,0);
   transition:transform 850ms var(--tc-ease)}
 .tc-track[data-snap="true"]{transition:none}
 .tc-item{width:var(--tc-w);flex:none}
-.tc-fade{-webkit-mask-image:linear-gradient(to right,#000 80%,transparent);
-  mask-image:linear-gradient(to right,#000 80%,transparent)}
 
 /* CSS owns progress, avoiding a requestAnimationFrame loop while idle. */
 @keyframes tc-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -114,8 +114,11 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
     return Array.from({ length: n * sets }, (_, v) => list[v % n]);
   }, [list, n]);
 
-  // `idx` is the position inside the (looping) rail. The middle copy starts at `n`.
-  const [idx, setIdx] = useState(n);
+  // These deliberately remain separate: a selected thumbnail stays in place until it
+  // would leave the visible window, rather than jumping to the rail's first position.
+  const [activeIndex, setActiveIndex] = useState(n);
+  const [railStart, setRailStart] = useState(n);
+  const [visibleCards, setVisibleCards] = useState(DESKTOP_VISIBLE_CARDS);
   const [snap, setSnap] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -131,17 +134,14 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
   const navigationLock = useRef(false);
   const navigationTimer = useRef<number | null>(null);
 
-  const active = ((idx % n) + n) % n;
+  const active = ((activeIndex % n) + n) % n;
   const multi = n > 1;
   const canPlay = multi && inView && !hovered && !focused && !userPaused && !reduced && !hidden;
 
-  const changeSlide = useCallback((change: (current: number) => number) => {
-    if (!multi || navigationLock.current) return;
-
+  const beginNavigation = useCallback(() => {
     navigationLock.current = true;
     setNavigationLocked(true);
     setLeavingBackground(active);
-    setIdx(change);
 
     if (navigationTimer.current !== null) window.clearTimeout(navigationTimer.current);
     navigationTimer.current = window.setTimeout(() => {
@@ -149,14 +149,33 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
       navigationTimer.current = null;
       setNavigationLocked(false);
     }, NAVIGATION_LOCK_MS);
-  }, [active, multi]);
-  const next = useCallback(() => changeSlide((i) => i + 1), [changeSlide]);
-  const prev = useCallback(() => changeSlide((i) => i - 1), [changeSlide]);
-  const select = useCallback((nextIndex: number) => changeSlide(() => nextIndex), [changeSlide]);
+  }, [active]);
+
+  const moveBy = useCallback((amount: 1 | -1) => {
+    if (!multi || navigationLock.current) return;
+
+    const nextActiveIndex = activeIndex + amount;
+    let nextRailStart = railStart;
+    if (nextActiveIndex < railStart) nextRailStart = nextActiveIndex;
+    if (nextActiveIndex >= railStart + visibleCards) nextRailStart = nextActiveIndex - (visibleCards - 1);
+
+    beginNavigation();
+    setActiveIndex(nextActiveIndex);
+    setRailStart(nextRailStart);
+  }, [activeIndex, beginNavigation, multi, railStart, visibleCards]);
+  const next = useCallback(() => moveBy(1), [moveBy]);
+  const prev = useCallback(() => moveBy(-1), [moveBy]);
+
+  const select = useCallback((nextIndex: number) => {
+    if (!multi || navigationLock.current || nextIndex === activeIndex) return;
+    beginNavigation();
+    setActiveIndex(nextIndex);
+  }, [activeIndex, beginNavigation, multi]);
 
   /* Reset when the data length changes */
   useEffect(() => {
-    setIdx(n);
+    setActiveIndex(n);
+    setRailStart(n);
     setLeavingBackground(null);
     navigationLock.current = false;
     setNavigationLocked(false);
@@ -179,6 +198,23 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
       document.removeEventListener('visibilitychange', vis);
     };
   }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const sync = () => setVisibleCards(mq.matches ? DESKTOP_VISIBLE_CARDS : MOBILE_VISIBLE_CARDS);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  /* Keep the selected card visible if the viewport changes between mobile and desktop. */
+  useEffect(() => {
+    setRailStart((currentStart) => {
+      if (activeIndex < currentStart) return activeIndex;
+      if (activeIndex >= currentStart + visibleCards) return activeIndex - (visibleCards - 1);
+      return currentStart;
+    });
+  }, [visibleCards]);
 
   useEffect(() => {
     const element = root.current;
@@ -225,16 +261,19 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
     return () => window.clearTimeout(timer);
   }, [active, leavingBackground]);
 
-  /* Once the rail has slid into a copy, jump back to the middle copy without animation */
+  /* Rebase the cloned rail after it slides beyond the middle copies; this is never visible. */
   useEffect(() => {
-    if (!multi || (idx >= n && idx < 2 * n)) return;
+    if (!multi || (railStart >= n && railStart < 2 * n)) return;
     const t = window.setTimeout(() => {
+      const selectedOffset = activeIndex - railStart;
+      const centeredStart = n + (((railStart % n) + n) % n);
       setSnap(true);
-      setIdx((i) => n + (((i % n) + n) % n));
+      setRailStart(centeredStart);
+      setActiveIndex(centeredStart + selectedOffset);
       requestAnimationFrame(() => requestAnimationFrame(() => setSnap(false)));
     }, reduced ? 0 : SETTLE_MS);
     return () => window.clearTimeout(t);
-  }, [idx, n, multi, reduced]);
+  }, [activeIndex, n, multi, railStart, reduced]);
 
   /* Input: keyboard + touch swipe */
   const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
@@ -398,7 +437,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
 
             {/* Rail: slides in sync with the card above */}
             {multi && (
-              <div className="tc-rail">
+              <div className="tc-rail relative left-1/2 w-screen -translate-x-1/2 px-6 lg:px-10">
                 <div className="mb-2.5 flex items-center justify-between">
                   <p className="text-[11px] font-medium text-white/60">Up next</p>
                   <div className="flex items-center gap-2">
@@ -422,10 +461,10 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                   </div>
                 </div>
 
-                <div className="tc-fade -mx-1 overflow-hidden p-1">
-                  <div className="tc-track" data-snap={snap} style={{ '--tc-idx': idx } as CSSProperties}>
+                <div className="overflow-hidden py-1">
+                  <div className="tc-track" data-snap={snap} style={{ '--tc-idx': railStart } as CSSProperties}>
                     {track.map((t, v) => {
-                      const isActive = v === idx;
+                      const isActive = v === activeIndex;
                       const primary = v >= n && v < 2 * n; // only the middle copy is exposed to assistive tech
                       return (
                         <button
@@ -440,7 +479,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                           className={`tc-item group relative aspect-[16/9] overflow-hidden rounded-[14px] text-left transition-[opacity,transform,box-shadow] duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
                             isActive
                               ? 'scale-100 opacity-100 ring-2 ring-[#f1c75b] shadow-[0_12px_32px_rgba(0,0,0,.45)]'
-                              : 'scale-[.97] opacity-60 ring-1 ring-white/15 hover:opacity-100'
+                              : 'scale-[.97] opacity-100 ring-1 ring-white/15'
                           }`}
                         >
                           <img
@@ -451,10 +490,8 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                             decoding="async"
                             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                           />
-                          <span className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                          <span className="absolute inset-x-3 bottom-3 block">
-                            <span className="block text-[10px] font-medium text-[#f1c75b]">{t.region}</span>
-                            <span className="mt-0.5 block truncate text-[12px] font-semibold leading-tight">
+                          <span className="absolute inset-x-0 bottom-0 block bg-[#082238]/80 px-3 py-2 backdrop-blur-[2px]">
+                            <span className="line-clamp-2 block text-[13px] font-semibold leading-tight text-white">
                               {t.title}
                             </span>
                           </span>
