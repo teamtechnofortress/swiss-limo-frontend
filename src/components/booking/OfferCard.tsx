@@ -20,14 +20,14 @@ export function OfferCard({
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
-      className={`group flex w-full items-stretch justify-between overflow-hidden rounded-xl border-2 text-left transition-all duration-200 ${
+      className={`group flex w-full min-w-0 flex-col items-stretch justify-between overflow-hidden rounded-xl border-2 text-left transition-all duration-200 md:flex-row ${
         selected
           ? 'border-[#eab308] bg-[#eab308]/5 shadow-sm'
           : 'border-gray-200 bg-gray-200 hover:border-[#eab308]/50 hover:bg-gray-50'
       }`}
     >
-      <div className="flex min-w-0 flex-1 items-center bg-gray-100 gap-3 sm:gap-5">
-        <div className="w-40 shrink-0 overflow-hidden bg-gray-200 sm:h-36 sm:w-64 lg:h-[129px]">
+      <div className="flex min-w-0 flex-1 items-center gap-2 bg-gray-100 sm:gap-3">
+        <div className="h-28 w-[42%] shrink-0 overflow-hidden bg-gray-200 sm:h-36 md:w-44 xl:w-60 lg:h-[129px]">
           {offer.thumbnail_url ? (
             <img
               src={offer.thumbnail_url}
@@ -41,9 +41,9 @@ export function OfferCard({
           )}
         </div>
 
-        <div className="flex min-w-0 flex-col py-3 sm:py-5 lg:py-2">
+        <div className="flex min-w-0 flex-1 flex-col break-words py-3 pr-2 sm:py-5 lg:py-2">
           <p className="text-[10px] sm:text-[12px] uppercase tracking-wider text-gray-500 font-semibold mb-1">{category}</p>
-          <div className="mt-1 flex flex-wrap gap-3 text-xs text-gray-600">
+          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600">
             <span className="flex items-center gap-1">
               <Users size={14} />
               {offer.passenger_capacity} Passengers
@@ -53,7 +53,7 @@ export function OfferCard({
               {offer.luggage_capacity} Bags
             </span>
           </div>
-          <h3 className="font-sans text-sm sm:text-base font-semibold text-[#0f172a] leading-normal truncate">{offer.name}</h3>
+          <h3 className="font-sans text-sm sm:text-base font-semibold text-[#0f172a] leading-normal">{offer.name}</h3>
           
           {offer.price.discount > 0 && (
             <p className="mt-1 text-[10px] sm:text-[11px] text-[#eab308] font-semibold">Discount: {money(offer.price.discount)}</p>
@@ -61,8 +61,8 @@ export function OfferCard({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center justify-between gap-3 px-3 py-3 sm:gap-5 sm:px-5 sm:py-5 lg:py-2">
-        <div className="text-left sm:text-right">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-t border-gray-300/60 px-4 py-3 md:border-l md:border-t-0 md:px-4 md:py-5 lg:py-2">
+        <div className="min-w-0 text-left md:text-right">
           <p className=" text-sm sm:text-2xl text-[#0f172a] leading-none">{money(total)}</p>
           <p className="mt-1 text-[9px] sm:text-[11px] text-gray-400">
             {offer.vat.included

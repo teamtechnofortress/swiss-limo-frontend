@@ -5,11 +5,11 @@ export const config = {
   /**
    * Laravel API prefix. New deployments supply NEXT_PUBLIC_API_BASE_URL; the
    * legacy API_URL form remains supported for local and existing deployments.
-   * http://192.168.1.12:8000/api
+   * http://192.168.1.12:8000/api  http://api.swissaerotransfer.ch/api
    */
   apiUrl: apiBaseUrl
     ? `${apiBaseUrl}/api`
-    : process.env.NEXT_PUBLIC_API_URL ?? 'http://api.swissaerotransfer.ch/api',
+    : process.env.NEXT_PUBLIC_API_URL ?? 'http://192.168.1.12:8000/api',
   brandName: process.env.NEXT_PUBLIC_BRAND_NAME ?? 'Swiss Aero Transfer',
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@example.ch',
   contactPhone: process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '+41 00 000 00 00',
