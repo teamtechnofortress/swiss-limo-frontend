@@ -1,3 +1,21 @@
+.tour-reference-page .tour-journey-card a.inline-flex {
+  border-radius: 10px;
+  min-height: 42px;
+}
+
+.tour-reference-page .tour-journey-card dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Keep a tall sidebar in the page flow on shorter screens so every action
+   and FAQ remains reachable without an inner scrollbar. */
+@media (min-width: 1024px) and (max-height: 800px) {
+  .tour-reference-page .tour-journey-sidebar {
+    position: static;
+  }
+}
+
 .tour-reference-page .tour-cms {
   color: #475569;
   font-size: 15px;

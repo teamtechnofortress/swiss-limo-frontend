@@ -115,7 +115,7 @@ export default async function TripPage({ params }: { params: Params }) {
       </Container>
 
       <Container className="pb-16 pt-10 sm:pb-20 lg:pb-24">
-        <div className="grid min-w-0 items-start gap-9 lg:grid-cols-[minmax(0,2.25fr)_minmax(300px,1fr)] lg:gap-10">
+        <div className="grid min-w-0 items-start gap-9 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-8">
           <article className="min-w-0 space-y-10">
             <section id="tour-overview" className="scroll-mt-28">
               <SectionTitle icon={<Mountain size={25} />}>Tour Overview</SectionTitle>
@@ -135,21 +135,21 @@ export default async function TripPage({ params }: { params: Params }) {
             {content.fallback && <ContentHtml html={content.fallback} className="tour-legacy-copy" />}
           </article>
 
-          <aside className="min-w-0 space-y-6 lg:sticky lg:top-24">
-            <section className="overflow-hidden rounded-2xl border border-[#0d1b2a]/10 bg-white shadow-[0_18px_38px_-26px_rgba(13,27,42,0.52)] lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
-              <h2 className="flex items-center justify-center gap-2.5 bg-[#0d1b2a] px-4 py-3 font-serif text-xl font-semibold text-white"><CalendarDays size={19} className="text-[#f1c75b]" />Plan this journey</h2>
-              {trip.coverUrl && <img src={trip.coverUrl} alt={trip.title} className="h-24 w-full object-cover sm:h-28" />}
-              <div className="p-4">
+          <aside className="tour-journey-sidebar min-w-0 space-y-5 lg:sticky lg:top-24">
+            <section className="tour-journey-card overflow-hidden rounded-2xl border border-[#0d1b2a]/10 bg-[#fffdf8] shadow-[0_8px_24px_-12px_rgba(13,27,42,0.24)]">
+              <h2 className="flex items-center justify-center gap-2.5 bg-[#0d1b2a] px-4 py-3.5 font-sans text-xl font-bold text-[#f1c75b]"><CalendarDays size={23} />Plan this journey</h2>
+              {trip.coverUrl && <img src={trip.coverUrl} alt={trip.title} className="h-24 w-full object-cover" />}
+              <div className="p-4 sm:px-5">
                 <p className="text-center text-[10px] font-bold uppercase tracking-[0.18em] text-[#40516b]">Private journey{durations.length === 1 ? ` · ${duration}` : ''}</p>
-                {startingPrice !== null ? <div className="mt-2 text-center"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Starting from</p><p className="mt-0.5 font-serif text-3xl font-semibold tracking-tight text-[#9b7012]">{money(startingPrice)}</p><p className="mt-1 text-[11px] leading-relaxed text-slate-600">Final price depends on pickup, date and vehicle.</p></div>
+                {startingPrice !== null ? <div className="mt-2 text-center"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">Starting from</p><p className="mt-0.5 font-serif text-4xl font-bold tracking-tight text-[#9b7012]">{money(startingPrice)}</p><p className="mt-1 text-[11px] leading-relaxed text-slate-600">Final price depends on pickup, date and vehicle.</p></div>
                   : <div className="mt-2 text-center"><p className="font-serif text-xl font-semibold text-[#9b7012]">{trip.pricingMode === 'distance' ? 'Live route pricing' : 'Price on request'}</p><p className="mt-1 text-[11px] leading-relaxed text-slate-600">{trip.pricingMode === 'distance' ? 'Get a quote for your route, date and vehicle.' : 'Let us prepare a tailored proposal for your trip.'}</p></div>}
-                <dl className="my-4 divide-y divide-[#0d1b2a]/10 border-y border-[#0d1b2a]/10 text-[11px]">
+                <dl className="my-3 divide-y divide-[#0d1b2a]/10 border-y border-[#0d1b2a]/10 text-xs">
                   {[
                     { icon: <MapPin size={18} />, label: 'Pickup / Return', value: pickupLabel },
                     { icon: <Clock3 size={18} />, label: 'Duration', value: duration },
                     ...(content.stopCount ? [{ icon: <Route size={18} />, label: 'Stops', value: `${content.stopCount} destinations` }] : []),
                     ...(content.countryCount ? [{ icon: <Globe2 size={18} />, label: 'Countries', value: `${content.countryCount} countries` }] : []),
-                  ].map(({ icon, label, value }) => <div key={label} className="flex items-start justify-between gap-3 py-2"><dt className="flex shrink-0 items-center gap-2 text-slate-600"><span className="text-[#9b7012]">{icon}</span>{label}</dt><dd className="text-right font-bold text-[#0d1b2a]">{value}</dd></div>)}
+                  ].map(({ icon, label, value }) => <div key={label} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-start gap-2 py-2"><dt className="flex items-center gap-1.5 font-medium text-[#40516b]"><span className="shrink-0 text-[#9b7012]">{icon}</span>{label}</dt><dd className="text-right font-extrabold text-[#0d1b2a]">{value}</dd></div>)}
                 </dl>
                 {!canBook && trip.booking.reason && <p className="mb-3 rounded-xl bg-[#fffaf0] px-3 py-2 text-[11px] leading-relaxed text-amber-900">{bookingBlockedMessages[trip.booking.reason]}</p>}
                 {canBook && <ButtonLink href={bookingHref} className="w-full !px-3 !py-2.5 !text-[12px] !font-bold">Book this journey<ArrowRight size={16} /></ButtonLink>}
@@ -161,13 +161,13 @@ export default async function TripPage({ params }: { params: Params }) {
             {pickups.length > 1 && <section className="rounded-2xl border border-[#0d1b2a]/10 bg-white p-5 shadow-[0_14px_32px_-28px_rgba(13,27,42,0.52)]"><h2 className="font-serif text-2xl font-semibold">Available pickup locations</h2><ul className="mt-3 divide-y divide-[#0d1b2a]/10">{pickups.map(location => <li key={location.id} className="py-3"><p className="text-sm font-bold">{location.name}</p><p className="mt-1 text-xs leading-relaxed text-slate-600">{location.address}</p><p className="mt-1 text-xs text-slate-600">{durationLabel(location.durationMinutes)}{location.startingFromPriceMinor !== null ? ` · From ${money(location.startingFromPriceMinor)}` : ''}</p></li>)}</ul></section>}
             {trip.faqs.length > 0 && (
               <section aria-labelledby="tour-faq-heading">
-                <h2 id="tour-faq-heading" className="mb-4 flex items-center gap-3 font-serif text-2xl font-semibold text-[#0d1b2a]">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1c75b]/20 text-[#9b7012]"><HelpCircle size={19} aria-hidden="true" /></span>Frequently asked questions
+                <h2 id="tour-faq-heading" className="mb-3 flex items-center gap-2.5 font-sans text-lg font-extrabold leading-tight text-[#0d1b2a]">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a]"><HelpCircle size={19} aria-hidden="true" /></span>Frequently asked questions
                 </h2>
                 <div className="space-y-2">
                   {trip.faqs.map(faq => (
-                    <details key={faq.id} className="group overflow-hidden rounded-xl border border-[#0d1b2a]/10 bg-white shadow-[0_10px_25px_-22px_rgba(13,27,42,0.52)] open:border-[#f1c75b]">
-                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-xs font-bold leading-relaxed text-[#0d1b2a] transition hover:bg-[#fffaf0] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#9b7012] [&::-webkit-details-marker]:hidden">
+                    <details key={faq.id} className="group overflow-hidden rounded-lg border border-[#0d1b2a]/10 bg-[#fffdf8] shadow-[0_2px_5px_rgba(13,27,42,0.04)] open:border-[#f1c75b]">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 text-xs font-bold leading-relaxed text-[#0d1b2a] transition hover:bg-[#fffaf0] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#9b7012] [&::-webkit-details-marker]:hidden">
                         <span className="min-w-0 break-words">{faq.question}</span>
                         <Plus size={18} className="shrink-0 text-[#9b7012] group-open:hidden" aria-hidden="true" />
                         <Minus size={18} className="hidden shrink-0 text-[#9b7012] group-open:block" aria-hidden="true" />
