@@ -41,6 +41,7 @@ export default async function BookPage({
           time={params.time}
           passengers={Number.isInteger(passengers) && passengers > 0 ? passengers : undefined}
           vehicle={params.vehicle}
+          roundTrip={params.roundTrip === 'true'}
         />
       </div>
     </div>

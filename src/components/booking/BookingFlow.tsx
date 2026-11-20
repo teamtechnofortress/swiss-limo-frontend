@@ -24,6 +24,7 @@ export interface BookingFlowProps {
   time?: string;
   passengers?: number;
   vehicle?: string;
+  roundTrip?: boolean;
 }
 
 const STEPS = [
@@ -40,7 +41,7 @@ function messageOf(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
 }
 
-export function BookingFlow({ from, to, date, time, passengers, vehicle }: BookingFlowProps) {
+export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTrip = false }: BookingFlowProps) {
   const router = useRouter();
   const flowTopRef = useRef<HTMLDivElement>(null);
   const hasMountedStepRef = useRef(false);
@@ -50,7 +51,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
   const [dropoff, setDropoff] = useState<PlaceValue | null>(null);
   const [startDate, setStartDate] = useState(date ?? addDays(zurichToday(), 1));
   const [startTime, setStartTime] = useState(time ?? '10:00');
-  const [roundTrip, setRoundTrip] = useState(false);
+  const [isRoundTrip, setIsRoundTrip] = useState(roundTrip);
   const [returnDate, setReturnDate] = useState(addDays(zurichToday(), 1));
   const [returnTime, setReturnTime] = useState('18:00');
   const [partySize, setPartySize] = useState(passengers ?? 1);
@@ -139,7 +140,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
         pickup_at: zurichLocalToIso(startDate, startTime),
         passengers: partySize,
         luggage: bags,
-        ...(roundTrip ? { return_at: zurichLocalToIso(returnDate, returnTime) } : {}),
+        ...(isRoundTrip ? { return_at: zurichLocalToIso(returnDate, returnTime) } : {}),
         ...(vehicle ? { vehicle_slug: vehicle } : {}),
         ...(turnstileToken ? { turnstile_token: turnstileToken } : {}),
       };
@@ -325,15 +326,15 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                 <label className="flex cursor-pointer items-center gap-2">
                   <input
                     type="checkbox"
-                    checked={roundTrip}
-                    onChange={(e) => setRoundTrip(e.target.checked)}
+                    checked={isRoundTrip}
+                    onChange={(e) => setIsRoundTrip(e.target.checked)}
                     className="h-4 w-4 accent-[#eab308]"
                   />
                   <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-black">Add a return journey</span>
                 </label>
               </div>
 
-              {roundTrip && (
+              {isRoundTrip && (
                 <div className="grid grid-cols-1 gap-4 pb-1 sm:grid-cols-2">
                   <div>
                     <label className={lightLabel}>Return date</label>
@@ -629,7 +630,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle }: Booki
                   value={`${bags}`} 
                 />
 
-                {roundTrip && (
+                {isRoundTrip && (
                   <>
                     <SidebarRow 
                       icon={<Calendar size={14} />} 
