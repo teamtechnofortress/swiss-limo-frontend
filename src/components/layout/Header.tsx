@@ -9,9 +9,10 @@ import type { SiteSettings } from '@/lib/public-config';
 
 const NAV = [
   { href: '/', label: 'Home' },
-  { href: '/fleet', label: 'Our Fleet' },
+  { href: '/fleet', label: 'Fleet' },
   { href: '/airport-transfers', label: 'Airport Transfers' },
-  { href: '/trips', label: 'Day Trips & Tours' },     // Renamed to match image
+  { href: '/wef-2027', label: 'WEF 2027' },
+  { href: '/trips', label: 'Day Tours' },     // Renamed to match image
   { href: '/about', label: 'About Us' },
   { href: '/contact', label: 'Contact' },
 ];
@@ -29,7 +30,7 @@ export function Header({ site }: { site: SiteSettings }) {
         
         <Link href="/" className="group flex min-h-11 items-center" aria-label={`${site.name} home`}>
           {site.logoUrl && (
-            <span className="block h-12 w-40 sm:w-48">
+            <span className="block h-12 w-40 shrink-0 sm:w-48">
               <img
                 src={site.logoUrl}
                 alt={site.name}
@@ -48,7 +49,7 @@ export function Header({ site }: { site: SiteSettings }) {
         </Link>
 
         {/* DESKTOP NAVIGATION */}
-        <nav className="hidden items-center gap-6 lg:flex" aria-label="Main">
+        <nav className="hidden items-center gap-5 xl:flex 2xl:gap-7" aria-label="Main">
           {NAV.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -56,7 +57,7 @@ export function Header({ site }: { site: SiteSettings }) {
                 key={item.href}
                 href={item.href}
                 aria-current={isActive ? 'page' : undefined}
-                className={`relative flex h-20 items-center text-[12px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
+                className={`relative flex h-20 items-center whitespace-nowrap text-[12px] font-semibold uppercase tracking-wider transition-colors duration-300 ${
                   isActive ? 'text-[#f1c75b]' : 'text-gray-300 hover:text-[#f1c75b]'
                 }`}
               >
@@ -70,9 +71,9 @@ export function Header({ site }: { site: SiteSettings }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-5">
+        <div className="flex shrink-0 items-center gap-4 xl:gap-5">
           
-        <div className="relative hidden items-center gap-1.5 text-[12px] font-semibold text-white/90 md:flex">
+        <div className="relative hidden shrink-0 items-center gap-1.5 text-[12px] font-semibold text-white/90 md:flex">
           <span className="flex h-4 w-6 overflow-hidden rounded-sm">
             <svg viewBox="0 0 32 32" className="h-full w-full">
              <rect width="32" height="32" fill="#d52b1e"/>
@@ -93,14 +94,14 @@ export function Header({ site }: { site: SiteSettings }) {
 
             <Link 
             href="/book" 
-            className="hidden md:inline-flex items-center justify-center gap-2 rounded-full bg-[#f1c75b] px-6 py-2.5 text-[12px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a]">
+            className="hidden shrink-0 whitespace-nowrap md:inline-flex items-center justify-center gap-2 rounded-full bg-[#f1c75b] px-6 py-2.5 text-[12px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a]">
             Book Your Ride <ArrowRight size={16} strokeWidth={2.5} className="ml-1" />
           </Link>
 
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="rounded-md p-2 text-white lg:hidden"
+            className="rounded-md p-2 text-white xl:hidden"
             aria-expanded={open}
             aria-label="Toggle menu"
           >
@@ -110,7 +111,7 @@ export function Header({ site }: { site: SiteSettings }) {
       </div>
 
       {open && (
-        <div className="absolute left-0 top-full w-full border-t border-white/10 bg-[#0d1b2a] shadow-xl lg:hidden">
+        <div className="absolute left-0 top-full w-full border-t border-white/10 bg-[#0d1b2a] shadow-xl xl:hidden">
           <nav className="mx-auto flex max-w-7xl flex-col px-6 py-4" aria-label="Mobile">
             {NAV.map((item) => (
               <Link
