@@ -1,4 +1,4 @@
-import type { BookingStatus, VehicleCategory } from './types';
+import type { BookingStatus, Vehicle, VehicleCategory } from './types';
 
 const chf = new Intl.NumberFormat('de-CH', { style: 'currency', currency: 'CHF' });
 
@@ -7,8 +7,39 @@ export function money(rappen: number): string {
   return chf.format(rappen / 100);
 }
 
-export function pricePerKm(rappen: number | null): string {
-  return rappen === null ? 'On request' : `${money(rappen)} / km`;
+/** Formats the public vehicle fare contract. Vehicle rates are never exposed per kilometre. */
+export function vehiclePriceLabel(vehicle: Pick<Vehicle, 'display_fare_minor' | 'display_fare_type' | 'price_on_request' | 'pricing'>): string {
+  if (vehicle.price_on_request) return 'Price on request';
+  if (vehicle.display_fare_minor === null) return 'Get a quote';
+
+  const price = money(vehicle.display_fare_minor);
+  if (vehicle.display_fare_type === 'base') {
+    const distance = vehicle.pricing.base_distance_km;
+    return distance ? `Base fare ${price} · includes first ${distance} km` : `Base fare ${price}`;
+  }
+
+  return `Minimum fare ${price}`;
+}
+
+/** Separates the public vehicle fare into card-friendly price and supporting copy. */
+export function vehiclePriceSummary(vehicle: Pick<Vehicle, 'display_fare_minor' | 'display_fare_type' | 'price_on_request' | 'pricing'>) {
+  if (vehicle.price_on_request) {
+    return { eyebrow: 'Pricing', price: 'Price on request', detail: null };
+  }
+  if (vehicle.display_fare_minor === null) {
+    return { eyebrow: 'Pricing', price: 'Get a quote', detail: null };
+  }
+
+  if (vehicle.display_fare_type === 'base') {
+    const distance = vehicle.pricing.base_distance_km;
+    return {
+      eyebrow: 'Starting from',
+      price: money(vehicle.display_fare_minor),
+      detail: distance ? `Base fare · includes first ${distance} km` : 'Base fare',
+    };
+  }
+
+  return { eyebrow: 'Starting from', price: money(vehicle.display_fare_minor), detail: 'Minimum fare' };
 }
 
 export function formatDateTime(iso: string): string {

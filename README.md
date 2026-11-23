@@ -41,7 +41,7 @@ and for the pre-selected vehicle on the booking page.
 
 ## How the data flows
 
-- **Vehicles:** `GET /public/vehicles` and `GET /public/vehicles/{slug}`. If the API is down or empty, the site shows the
+- **Vehicles:** `GET /vehicles` and `GET /vehicles/{slug}`. Vehicle cards display the public base or minimum fare returned by the API; they do not calculate or show a per-kilometre rate. If the API is down or empty, the site shows the
   sample fleet in `src/lib/fleet.ts`.
 - **Quote:** the browser sends Google place IDs, the time and the party size. The price comes only from the server.
 - **Booking:** the browser sends the quote token and the chosen vehicle. The response contains an access token. It is kept in

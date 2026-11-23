@@ -1,4 +1,5 @@
 export type VehicleCategory = 'executive' | 'first_class' | 'van';
+export type VehicleDisplayFareType = 'minimum' | 'base';
 
 /** Publicly managed vehicle media. `thumbnail_url` is preferred for small previews. */
 export interface VehicleMediaImage {
@@ -36,10 +37,14 @@ export interface Vehicle {
   description: string | null;
   passenger_capacity: number;
   luggage_capacity: number;
-  /** Rappen per kilometre. Null means price on request. */
-  price_per_km: number | null;
-  /** Rappen. */
-  minimum_fare: number | null;
+  /** Public display fare in rappen. Null means the customer should request a quote. */
+  display_fare_minor: number | null;
+  display_fare_type: VehicleDisplayFareType | null;
+  price_on_request: boolean;
+  pricing: {
+    /** Included distance for a base-fare vehicle; otherwise null. */
+    base_distance_km: number | null;
+  };
   amenities: string[];
   media: VehicleMedia;
   /** Legacy flattened image URLs retained for existing callers. New UI should use `media`. */

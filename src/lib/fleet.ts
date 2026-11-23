@@ -1,6 +1,6 @@
 import { api, ApiError } from './api';
 import { config } from './config';
-import type { Vehicle, VehicleCategory, VehicleMedia, VehicleMediaImage } from './types';
+import type { Vehicle, VehicleCategory, VehicleDisplayFareType, VehicleMedia, VehicleMediaImage } from './types';
 
 interface ApiVehicle {
   id?: unknown;
@@ -11,8 +11,9 @@ interface ApiVehicle {
   description?: unknown;
   passenger_capacity?: unknown;
   luggage_capacity?: unknown;
-  price_per_km?: unknown;
-  minimum_fare?: unknown;
+  display_fare_minor?: unknown;
+  display_fare_type?: unknown;
+  price_on_request?: unknown;
   pricing?: unknown;
   amenities?: unknown;
   media?: unknown;
@@ -36,6 +37,14 @@ function categoryFromApi(value: unknown): VehicleCategory | null {
 
 function numberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function nonNegativeIntegerOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 ? value : null;
+}
+
+function displayFareTypeFromApi(value: unknown): VehicleDisplayFareType | null {
+  return value === 'minimum' || value === 'base' ? value : null;
 }
 
 function mediaUrl(value: unknown): string | null {
@@ -97,8 +106,10 @@ function vehicleFromApi(vehicle: ApiVehicle): Vehicle | null {
     description: typeof vehicle.description === 'string' ? vehicle.description : null,
     passenger_capacity: numberOrNull(vehicle.passenger_capacity) ?? 0,
     luggage_capacity: numberOrNull(vehicle.luggage_capacity) ?? 0,
-    price_per_km: numberOrNull(vehicle.price_per_km),
-    minimum_fare: numberOrNull(vehicle.minimum_fare) ?? numberOrNull(pricing?.minimum_fare_minor),
+    display_fare_minor: nonNegativeIntegerOrNull(vehicle.display_fare_minor),
+    display_fare_type: displayFareTypeFromApi(vehicle.display_fare_type),
+    price_on_request: vehicle.price_on_request === true,
+    pricing: { base_distance_km: nonNegativeIntegerOrNull(pricing?.base_distance_km) },
     amenities: Array.isArray(vehicle.amenities)
       ? vehicle.amenities.filter((amenity): amenity is string => typeof amenity === 'string')
       : [],
@@ -118,7 +129,7 @@ export async function getVehicles(category?: string): Promise<Vehicle[]> {
   const query = apiCategory ? `?category=${encodeURIComponent(apiCategory)}` : '';
 
   try {
-    const res = await api<{ data: ApiVehicle[] }>(`/public/vehicles${query}`, {
+    const res = await api<{ data: ApiVehicle[] }>(`/vehicles${query}`, {
       next: { revalidate: 300 },
     });
     const vehicles = res.data.map(vehicleFromApi).filter((vehicle): vehicle is Vehicle => vehicle !== null);
@@ -135,7 +146,7 @@ export async function getVehicles(category?: string): Promise<Vehicle[]> {
 
 export async function getVehicle(slug: string): Promise<Vehicle | null> {
   try {
-    const res = await api<{ data: ApiVehicle }>(`/public/vehicles/${encodeURIComponent(slug)}`, {
+    const res = await api<{ data: ApiVehicle }>(`/vehicles/${encodeURIComponent(slug)}`, {
       next: { revalidate: 300 },
     });
 
