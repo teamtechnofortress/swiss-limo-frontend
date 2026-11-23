@@ -8,9 +8,8 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   const cover = vehicle.media.cover;
   const image = cover?.thumbnail_url ?? cover?.url ?? vehicle.images[0];
   const price = vehiclePriceSummary(vehicle);
-  const enquiryHref = `/contact?type=vehicle&vehicle=${encodeURIComponent(vehicle.slug)}`;
   const bookingHref = vehicle.price_on_request
-    ? enquiryHref
+    ? `/contact?type=vehicle&vehicle=${encodeURIComponent(vehicle.slug)}`
     : `/book?vehicle=${encodeURIComponent(vehicle.slug)}`;
   const actionLabel = vehicle.price_on_request ? 'Request a quote' : 'Book now';
 
@@ -42,7 +41,6 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             </div>
             <div className="mt-4 grid gap-2">
               <Link href={bookingHref} className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#f1c75b] px-4 py-2.5 text-[11px] font-bold text-[#0d1b2a] transition hover:bg-[#e0b54a] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d1b2a]">{actionLabel}<ArrowRight size={14} strokeWidth={2.5} /></Link>
-              {!vehicle.price_on_request && <Link href={enquiryHref} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#0d1b2a]/25 px-4 py-2.5 text-[11px] font-bold text-[#0d1b2a] transition hover:border-[#0d1b2a]/50 hover:bg-[#f8f3e9] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d1b2a]">Enquire now<ArrowRight size={14} strokeWidth={2.5} /></Link>}
             </div>
           </div>
         </div>
