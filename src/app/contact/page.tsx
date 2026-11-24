@@ -38,23 +38,19 @@ export default async function ContactPage({
   const contextLabel = trip?.title ?? vehicle?.name;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-[#0d1b2a]">
-      <section className="relative flex min-h-[235px] items-center overflow-hidden bg-[#0d1b2a] py-12 md:min-h-[265px]">
-        <img src="/images/home/step1.png" alt="" className="absolute inset-0 h-full w-full object-cover object-center opacity-70" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,27,42,0.95)_0%,rgba(13,27,42,0.82)_44%,rgba(13,27,42,0.26)_100%)]" />
-        <Container className="relative z-10">
+    <div className="min-h-screen bg-white text-[#0d1b2a]">
+      <section className=" bg-white">
+        <Container className="pb-4 pt-10 md:pb-6 md:pt-12">
           <div className="max-w-2xl">
             <div className="mb-3 flex items-center gap-3">
               <span className="h-[3px] w-8 bg-[#f1c75b]" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white">Swiss premium chauffeur service</p>
             </div>
-            <h1 className="font-serif text-4xl font-bold leading-tight text-white md:text-5xl">Let&apos;s plan your <span className="text-[#f1c75b]">journey.</span></h1>
-            <p className="mt-2 max-w-xl text-sm font-medium leading-relaxed text-slate-100 md:text-base">Send us your request and our travel team will prepare every detail with Swiss precision.</p>
+            <h1 className="font-serif text-4xl font-bold leading-tight text-[#0d1b2a] md:text-5xl">Let&apos;s plan your <span className="text-[#b6780c]">journey.</span></h1>
           </div>
         </Container>
       </section>
 
-      <Container className="relative z-10 -mt-9 pb-16 md:-mt-12 md:pb-24">
+      <Container className="pb-16 pt-4 md:pb-24 md:pt-6">
         <div className="grid items-start gap-6 lg:grid-cols-12">
           <aside className="space-y-5 lg:col-span-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_30px_-18px_rgba(15,31,56,0.35)] md:p-7">

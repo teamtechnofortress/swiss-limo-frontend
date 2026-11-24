@@ -70,7 +70,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
       <Container className="relative flex h-full flex-col justify-start pt-12 md:pt-16">
         <div className="max-w-2xl">
           
-          <div className="mb-2 flex items-center gap-3">
+          <div data-header-solid-trigger className="mb-2 flex items-center gap-3">
             <span className="h-px w-8 bg-[#f1c75b]" />
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white">
               Private Chauffeur Services in Switzerland

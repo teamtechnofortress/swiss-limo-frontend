@@ -57,7 +57,7 @@ export default async function TripBookingPage({ params }: { params: Params }) {
           <h1 className="mt-1 font-serif text-3xl font-bold text-white sm:text-4xl" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor' }}>
             Book your <span className="text-[#eab308]">experience</span>
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/80">{trip.title}. Choose your pickup and journey details, then reserve the vehicle that suits you.</p>
+          {/* <p className="mt-2 max-w-2xl text-sm leading-relaxed text-white/80">{trip.title}. Choose your pickup and journey details, then reserve the vehicle that suits you.</p> */}
         </Container>
       </div>
 

@@ -84,9 +84,9 @@ export default async function TripPage({ params }: { params: Params }) {
             <Mountain strokeWidth={0.6} className="h-64 w-80 text-[#f1c75b]/10" />
           </div>
         )}
-        <Container className="relative py-12 sm:py-14 lg:py-16">
+        <Container className="relative pb-12 pt-28 sm:pb-14 sm:pt-32 lg:pb-16 lg:pt-32 xl:pt-40">
           <div className="max-w-2xl lg:max-w-[60%]">
-            <div className="flex items-center gap-3"><span className="h-[3px] w-8 bg-[#f1c75b]" /><p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f1c75b]">Private journey{trip.region ? ` · ${trip.region}` : ''}</p></div>
+            <div className="flex items-center gap-3"><span className="h-[3px] w-8 bg-[#f1c75b]" /><p data-header-solid-trigger className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f1c75b]">Private journey{trip.region ? ` · ${trip.region}` : ''}</p></div>
             <h1 className="mt-4 text-4xl font-semibold leading-[0.96] tracking-[-0.025em] sm:text-5xl lg:text-6xl">{trip.title}</h1>
             {trip.subtitle && <p className="mt-3 font-serif text-xl italic leading-tight text-[#f1c75b] sm:text-2xl">{trip.subtitle}</p>}
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">{trip.summary}</p>

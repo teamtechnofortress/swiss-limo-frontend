@@ -35,11 +35,11 @@ export default async function TripsPage({ searchParams }: { searchParams: Search
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0d1b2a]/80 to-transparent" />
         </div>
 
-        <Container className="relative py-11 sm:py-12 lg:py-14">
+        <Container className="relative pb-11 pt-28 sm:pb-12 sm:pt-28 lg:pb-14 lg:pt-32 xl:pt-40">
           <div className="max-w-2xl">
             <div className="flex items-center gap-3">
               <span className="h-[3px] w-8 bg-[#f1c75b]" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f1c75b]">Private day trips &amp; tours</p>
+              <p data-header-solid-trigger className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f1c75b]">Private day trips &amp; tours</p>
             </div>
             <h1 className="mt-4 font-serif text-4xl font-semibold leading-[0.94] tracking-[-0.025em] text-white sm:text-5xl lg:text-6xl">
               Your journey,<br />

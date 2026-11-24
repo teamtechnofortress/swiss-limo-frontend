@@ -32,9 +32,9 @@ export default async function FleetPage({
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0d1b2a]/80 to-transparent" />
         </div>
 
-        <Container className="relative py-12 sm:py-14 lg:py-16">
+        <Container className="relative pb-12 pt-28 sm:pb-14 sm:pt-32 lg:pb-16 lg:pt-32 xl:pt-40">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-3"><span className="h-[3px] w-8 bg-[#f1c75b]" /><p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f1c75b]">Our fleet</p></div>
+            <div data-header-solid-trigger className="flex items-center gap-3"><span className="h-[3px] w-8 bg-[#f1c75b]" /><p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#f1c75b]">Our fleet</p></div>
             <h1 className="mt-4 font-serif text-4xl font-semibold leading-[0.94] tracking-[-0.025em] text-white sm:text-5xl lg:text-6xl">A fleet chosen for<br /><span className="text-[#f1c75b]">every journey.</span></h1>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base">From refined executive saloons to spacious vans, choose the vehicle that gives your journey the right balance of comfort, space and presence.</p>
             <div className="mt-6 flex flex-wrap gap-3">

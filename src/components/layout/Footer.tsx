@@ -58,7 +58,7 @@ export function Footer({ site }: { site: SiteSettings }) {
           <div>
             <Link href="/" className="inline-flex flex-col items-start gap-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f1c75b]">
               {site.logoUrl ? (
-                <span className="block h-14 w-48 shrink-0">
+                <span className="block w-48 shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={site.logoUrl} alt={site.name} className="h-full w-full object-contain object-left" />
                 </span>
@@ -71,6 +71,9 @@ export function Footer({ site }: { site: SiteSettings }) {
                 Swiss Premium Chauffeur Services
               </p>
             </Link>
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/65">
+              Premium chauffeur services for airport transfers, business travel and private journeys across Switzerland. Travel in comfort, on your schedule, with every detail handled.
+            </p>
           </div>
 
           <nav aria-label="Footer navigation">

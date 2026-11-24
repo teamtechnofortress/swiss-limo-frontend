@@ -123,9 +123,9 @@ export default async function AirportTransfersPage() {
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,30,50,.97)_0%,rgba(7,30,50,.9)_36%,rgba(7,30,50,.35)_66%,rgba(7,30,50,.08)_100%)] max-md:bg-[linear-gradient(180deg,rgba(7,30,50,.94)_0%,rgba(7,30,50,.82)_100%)]" />
         </div>
 
-        <Container className="relative max-w-[1240px] pb-28 pt-12 sm:pb-32 sm:pt-14 lg:pt-16">
+        <Container className="relative max-w-[1240px] pb-28 pt-28 sm:pb-32 sm:pt-32 lg:pt-32 xl:pt-40">
           <div className="max-w-[640px]">
-            <p className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white/90">
+            <p data-header-solid-trigger className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.18em] text-white/90">
               <span className="h-[2px] w-8 bg-[#f1c75b]" />
               Private airport transfer in Switzerland
             </p>

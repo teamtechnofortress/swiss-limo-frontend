@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ArrowRight, Menu, X, ChevronDown } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/primitives';
 import type { SiteSettings } from '@/lib/public-config';
@@ -20,21 +20,141 @@ const NAV = [
 const bookButtonClass =
   '!rounded-full !border-none !bg-[#f1c75b] !px-6 !py-2.5 !text-[13px] !font-bold !text-[#0d1b2a] transition-all duration-300 hover:!bg-[#e0b54a] hover:!shadow-[0_4px_12px_rgba(241,199,91,0.4)]';
 
-export function Header({ site }: { site: SiteSettings }) {
+const TRANSPARENT_HEADER_PATHS = new Set([
+  '/',
+  '/fleet',
+  '/airport-transfers',
+  '/book',
+  '/wef-2027',
+  '/trips',
+]);
+
+function hasTransparentHeaderPath(pathname: string): boolean {
+  return TRANSPARENT_HEADER_PATHS.has(pathname) || /^\/trips\/[^/]+$/.test(pathname);
+}
+
+export type HeaderProps = {
+  site: SiteSettings;
+  /** Shows a dark-to-transparent overlay. Defaults to true on hero pages. */
+  transparentGradient?: boolean;
+  /** Controls when a transparent header becomes fixed and fully opaque. */
+  forceSolid?: boolean;
+  /** Optional replacement for the default opaque header background colour. */
+  solidHeaderClassName?: string;
+};
+
+/**
+ * For a hero header, control `forceSolid` from the importing client component:
+ * `<Header site={site} transparentGradient forceSolid={!isHeroVisible} />`
+ * `isHeroVisible` can be maintained with an IntersectionObserver.
+ */
+export function Header({
+  site,
+  transparentGradient,
+  forceSolid = false,
+  solidHeaderClassName = 'bg-[#0d1b2a]',
+}: HeaderProps) {
   const [open, setOpen] = useState(false);
+  const [hasPassedSolidTrigger, setHasPassedSolidTrigger] = useState(false);
+  const [isHeaderReady, setIsHeaderReady] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
+  const hasTransparentGradient = transparentGradient ?? hasTransparentHeaderPath(pathname);
+  const overlaysHero = hasTransparentGradient;
+  const isTransparent = hasTransparentGradient && !forceSolid && !hasPassedSolidTrigger;
+  const isHeaderVisible = !hasTransparentGradient || isHeaderReady;
+
+  useLayoutEffect(() => {
+    if (!hasTransparentGradient || forceSolid) {
+      setHasPassedSolidTrigger(false);
+      setIsHeaderReady(true);
+      return;
+    }
+
+    let animationFrame = 0;
+    let restorationTimeout: number | undefined;
+    const trigger = document.querySelector<HTMLElement>('[data-header-solid-trigger]');
+
+    if (!trigger) {
+      setHasPassedSolidTrigger(false);
+      setIsHeaderReady(true);
+      return;
+    }
+
+    const updateHeaderAppearance = () => {
+      const headerBottom = headerRef.current?.getBoundingClientRect().bottom ?? 0;
+      const triggerBottom = trigger.getBoundingClientRect().bottom;
+
+      // The header becomes solid only after the whole trigger has travelled
+      // behind it. Reading the live DOM position keeps this accurate when a
+      // browser restores scroll after a refresh or history navigation.
+      const shouldBeSolid = triggerBottom <= headerBottom;
+      setHasPassedSolidTrigger((current) =>
+        current === shouldBeSolid ? current : shouldBeSolid,
+      );
+      setIsHeaderReady(true);
+    };
+
+    const scheduleAppearanceUpdate = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(updateHeaderAppearance);
+    };
+
+    // This synchronous check avoids displaying a transparent header after
+    // hydration when the browser has already restored the scroll position.
+    updateHeaderAppearance();
+
+    const observer = new IntersectionObserver(scheduleAppearanceUpdate, {
+      threshold: [0, 1],
+    });
+    observer.observe(trigger);
+
+    window.addEventListener('scroll', scheduleAppearanceUpdate, { passive: true });
+    window.addEventListener('resize', scheduleAppearanceUpdate);
+    window.addEventListener('pageshow', scheduleAppearanceUpdate);
+
+    // Some browsers apply their native refresh restoration just after the
+    // first client frame, so verify once more after that restoration completes.
+    restorationTimeout = window.setTimeout(scheduleAppearanceUpdate, 0);
+
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(animationFrame);
+      if (restorationTimeout !== undefined) {
+        window.clearTimeout(restorationTimeout);
+      }
+      window.removeEventListener('scroll', scheduleAppearanceUpdate);
+      window.removeEventListener('resize', scheduleAppearanceUpdate);
+      window.removeEventListener('pageshow', scheduleAppearanceUpdate);
+    };
+  }, [forceSolid, hasTransparentGradient, pathname]);
+
+  const headerClassName = [
+    overlaysHero ? 'fixed inset-x-0 top-0' : 'sticky top-0',
+    'z-50 py-2 transition-[transform,opacity,background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none',
+    isHeaderVisible
+      ? 'translate-y-0 opacity-100'
+      : '-translate-y-full pointer-events-none opacity-0',
+    isTransparent
+      ? 'bg-gradient-to-b from-[#0d1b2a]/90 via-[#0d1b2a]/45 to-transparent shadow-none'
+      : `${solidHeaderClassName} shadow-lg`,
+  ].join(' ');
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0d1b2a] shadow-lg">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header ref={headerRef} className={headerClassName}>
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
-        <Link href="/" className="group flex min-h-11 items-center" aria-label={`${site.name} home`}>
+        <Link
+          href="/"
+          className="group absolute left-1/2 flex h-12 -translate-x-1/2 items-center xl:static xl:min-h-11 xl:h-auto xl:translate-x-0"
+          aria-label={`${site.name} home`}
+        >
           {site.logoUrl && (
-            <span className="block h-12 w-40 shrink-0 sm:w-48">
+            <span className="block h-12 w-40 shrink-0 xl:h-14 xl:w-48">
               <img
                 src={site.logoUrl}
                 alt={site.name}
-                className="h-full w-full object-contain object-left drop-shadow-sm"
+                className="h-full w-full object-contain"
               />
             </span>
           )}
@@ -62,10 +182,6 @@ export function Header({ site }: { site: SiteSettings }) {
                 }`}
               >
                 {item.label}
-                {/* Gold Underline for Active Link */}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 h-[3px] w-full bg-[#f1c75b]" />
-                )}
               </Link>
             );
           })}
