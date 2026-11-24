@@ -1,10 +1,12 @@
 import { CalendarDays,Gem, CreditCard, MapPin, Plane,Briefcase,Car, MessageSquare, ArrowRight, Users,Plus, ShieldCheck, Clock, Receipt, Mail } from 'lucide-react';
+import type { Metadata } from 'next';
 import { Hero } from '@/components/home/Hero';
 import { VehicleCard } from '@/components/fleet/VehicleCard';
 import { ButtonLink, Card, Container, Eyebrow, GoldRule, Section, SectionHeading } from '@/components/ui/primitives';
 import { TripCard } from '@/components/trips/TripCard';
 import { getVehicles } from '@/lib/fleet';
 import { getFeaturedTrips } from '@/lib/trips';
+import { fallbackPublicConfig, getPublicConfig } from '@/lib/public-config';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TripCarousel } from '@/components/home/TripCarousel';
@@ -22,11 +24,46 @@ const STEPS = [
   { n: '03', title: 'Confirm and ride', text: 'Pay securely, receive your confirmation, and your chauffeur is ready for you.' },
 ];
 
+export const metadata: Metadata = {
+  title: { absolute: 'Private Chauffeur Switzerland | Zurich Airport Transfers' },
+  description: 'Book a private chauffeur in Switzerland. Zurich airport transfers, executive travel and fixed-price day tours in Mercedes-Benz vehicles. Book online today.',
+};
+
+const HOME_FAQS = [
+  {
+    question: 'How much does a private transfer from Zurich Airport cost?',
+    answer: 'Prices start at CHF 69 for an E-Class sedan and include the first 16 km. Your exact fare depends on the vehicle and destination, and you can see it when you book.',
+  },
+  {
+    question: 'Do you track flights?',
+    answer: 'Yes. We monitor your flight, so your driver arrives on time even if your flight is early or delayed.',
+  },
+  {
+    question: 'Can I book a driver for the whole day?',
+    answer: 'Yes. Our private chauffeur hire covers hourly or full-day bookings for sightseeing, meetings and events.',
+  },
+  {
+    question: 'How many passengers can ride in one vehicle?',
+    answer: 'The E-Class and S-Class seat up to 3 passengers. The V-Class seats up to 7 passengers.',
+  },
+  {
+    question: 'Are your day tours private?',
+    answer: 'Yes. Every tour is private, with only your group in the vehicle.',
+  },
+];
+
+function whatsappLink(phone: string | null | undefined) {
+  const digits = (phone ?? '').replace(/\D/g, '').replace(/^00/, '');
+  return digits.length >= 7 ? `https://wa.me/${digits}` : null;
+}
+
 export default async function HomePage() {
-  const [vehicles, featuredTrips] = await Promise.all([
+  const [vehicles, featuredTrips, publicConfig] = await Promise.all([
     getVehicles().then((items) => items.slice(0, 3)),
     getFeaturedTrips().catch(() => []),
+    getPublicConfig().catch(() => fallbackPublicConfig()),
   ]);
+  const whatsappUrl = whatsappLink(publicConfig.site.contact.phone);
 
   return (
     <>
@@ -56,12 +93,15 @@ export default async function HomePage() {
               <div className="mb-3 flex items-center gap-3">
                 <span className="h-[3px] w-8 bg-[#f1c75b] shadow-[0_0_2px_#f1c75b]"/>
                 <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#0d1b2a]">
-                  Our Chauffeur Services
+                  Chauffeur Services
                 </p>
               </div>
               <h2 className="font-serif text-3xl font-bold text-[#0d1b2a] md:text-4xl lg:text-5xl" style={{ textShadow: '0.75px 0 0 currentColor, -0.75px 0 0 currentColor, 0 0.75px 0 currentColor, 0 -0.75px 0 currentColor' }}>
-                 Premium Chauffeur Services
+                 Premium Chauffeur Services Across Switzerland
               </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600">
+                From airport pickups to executive travel and scenic long-distance routes, our chauffeur services cover every type of journey in Switzerland.
+              </p>
             </div>
             
             <div className="flex items-start gap-4">
@@ -71,10 +111,10 @@ export default async function HomePage() {
 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: Plane, title: 'Airport Transfers', text: 'Punctual and reliable airport pickups and drop-offs.', img: '/images/home/service-airport.jpg' },
-              { icon: Briefcase, title: 'Private Chauffeur', text: 'Flexible hourly or daily chauffeur service.', img: '/images/home/service-chauffeur.jpg' },
-              { icon: Users, title: 'Corporate Travel', text: 'Professional and discreet business transportation.', img: '/images/home/service-corporate.jpg' },
-              { icon: MapPin, title: 'Long Distance Transfers', text: 'Comfortable intercity travel across Switzerland and beyond.', img: '/images/home/service-long-distance.jpg' },
+              { icon: Plane, title: 'Airport Transfers', text: 'Reliable airport pickups and drop-offs at Zurich and other Swiss airports. Your driver tracks your flight, so a delay never leaves you waiting at the curb.', img: '/images/home/service-airport.jpg', alt: 'Mercedes-Benz chauffeur car on the tarmac at Zurich Airport with a Swiss passenger jet' },
+              { icon: Briefcase, title: 'Private Chauffeur Hire', text: 'Hire a professional driver by the hour or by the day for meetings, shopping, sightseeing or events. One driver, one vehicle, and your schedule.', img: '/images/home/service-chauffeur.jpg', alt: 'Professional chauffeur opening a car door for a client' },
+              { icon: Users, title: 'Corporate Travel', text: 'Discreet, punctual transport for executives and business teams. Work on the road in a quiet, comfortable cabin with reliable timing for every appointment.', img: '/images/home/service-corporate.jpg', alt: 'Business traveler working on a laptop in the back seat of a chauffeur-driven car' },
+              { icon: MapPin, title: 'Long-Distance Transfers', text: 'Comfortable intercity travel between Swiss cities, ski resorts and lakeside towns, with no train changes and no parking worries.', img: '/images/home/service-long-distance.jpg', alt: 'Mercedes sedan driving along a scenic Swiss lakeside road with mountains in the background' },
             ].map((service, i) => (
               <div key={i} className="group relative rounded-xl bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md border border-black/5">
                 
@@ -82,7 +122,7 @@ export default async function HomePage() {
                   <div className="absolute inset-0 overflow-hidden rounded-t-xl">
                     <Image 
                       src={service.img} 
-                      alt={service.title} 
+                      alt={service.alt}
                       fill 
                       className="object-cover" 
                     />
@@ -113,7 +153,7 @@ export default async function HomePage() {
               <div className="relative min-h-[220px] md:min-h-[280px] w-full md:col-span-7 rounded-xl overflow-hidden shadow-[0_5px_15px_rgba(19,38,56,0.15)]">
                 <Image 
                   src="/images/home/zurich-airport.jpg" 
-                  alt="Zurich Airport Transfer" 
+                  alt="Mercedes-Benz chauffeur car parked outside Zurich Airport terminal"
                   fill 
                   className="object-cover object-center" 
                 />
@@ -121,28 +161,21 @@ export default async function HomePage() {
 
               <div className="flex flex-col justify-center py-2 md:col-span-5">
                 
-                <div className="mb-2 flex items-center gap-2">
-                  <span className="h-[3px] w-6 bg-[#f1c75b]" />
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#172332]">
-                    Premium Airport Transfers
-                  </p>
-                </div>
-                
                 <h2 className="font-serif text-2xl font-bold text-[#0d1b2a] md:text-3xl"
                      style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}>
-                        Zurich Airport Transfer
+                        Zurich Airport Transfer: Private Chauffeur from ZRH
                 </h2>
                 
                 <p className="mt-2 text-xs leading-relaxed text-gray-600">
-                  Start your Swiss journey in comfort. Enjoy a private chauffeur transfer from Zurich Airport to your hotel, business meeting or destination anywhere in Switzerland.
+                  Start your Swiss journey with a private chauffeur from Zurich Airport (ZRH) to your hotel, business meeting or final destination anywhere in Switzerland. Your driver meets you inside the terminal with a name sign, helps with your luggage and takes you directly to your door in a premium Mercedes-Benz.
                 </p>
 
                 <div className="mt-4 grid grid-cols-4 gap-2 mb-4">
                   {[
-                    { icon: Plane, text: 'Airport Pickup\n& Drop-off' },
-                    { icon: Clock, text: 'Flight\nTracking' },
-                    { icon: Users, text: 'Meet &\nGreet' },
-                    { icon: Car, text: 'Premium\nMercedes Fleet' }
+                    { icon: Plane, text: 'Airport pickup\nand drop-off' },
+                    { icon: Clock, text: 'Flight\ntracking' },
+                    { icon: Users, text: 'Meet and\ngreet' },
+                    { icon: Car, text: 'Premium\nMercedes fleet' }
                   ].map((feature, i) => (
                     <div key={i} className={`flex items-center gap-2 ${i !== 3 ? 'border-r border-[#d2c9bc] pr-2' : ''}`}>
                       <feature.icon size={22} className="shrink-0 text-[#c88d22]" strokeWidth={1.5} />
@@ -154,16 +187,9 @@ export default async function HomePage() {
                 <div className="flex flex-wrap items-center gap-3">
                   <ButtonLink href="/book?from=Zurich%20Airport" className="!rounded-full !border-none !bg-[#f1c75b] !px-4 !py-2.5 !text-[11px] !font-bold !text-[#111e29] hover:!bg-[#e0b54a]"
 >
-                   <Car size={14} className="mr-1.5" /> Book Transfer
+                   <Car size={14} className="mr-1.5" /> Book Your Transfer
                   </ButtonLink>
 
-                  <ButtonLink 
-                    href="/airport-transfers"
-                    variant="outline"
-                    className="!rounded-full !border !border-black !bg-white !px-4 !py-2.5 !text-[11px] !font-bold !text-[#111e29] !shadow-none hover:!bg-gray-50"
-                  > 
-                    Airport Transfers
-                  </ButtonLink>
                 </div>
               </div>
 
@@ -187,8 +213,11 @@ export default async function HomePage() {
                 </p>
               </div>
               <h2 className="font-serif text-3xl font-bold text-[#0d1b2a] md:text-4xl lg:text-5xl">
-                Our Luxury Fleet
+                Our Luxury Fleet: Mercedes-Benz Chauffeur Vehicles
               </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-relaxed text-slate-600">
+                Every vehicle is clean, climate-controlled and driven by a professional chauffeur. Base fares include the first 16 km.
+              </p>
             </div>
             
             <div className="flex flex-col items-start gap-4 md:flex-row md:items-center">
@@ -212,12 +241,17 @@ export default async function HomePage() {
       </section>
 
 
- <section className="relative bg-[#071e32] py-4 text-white">
-  <Container className="flex flex-col items-center justify-between gap-6 md:flex-row"> 
-    <h2 className="font-serif text-2xl font-bold whitespace-nowrap md:text-4xl">
-      Why Choose Us?
-    </h2>
-    <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 lg:gap-8">
+ <section className="relative bg-[#071e32] py-10 text-white">
+  <Container>
+    <div className="mb-7 max-w-2xl">
+      <h2 className="font-serif text-3xl font-bold md:text-4xl">
+        Why Choose Swiss Aero Transfer?
+      </h2>
+      <p className="mt-2 text-sm leading-relaxed text-white/75">
+        Our clients choose us for the details that make a difference.
+      </p>
+    </div>
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
       {[
         { 
           customIcon: (
@@ -228,22 +262,24 @@ export default async function HomePage() {
               </svg>
             </span>
           ), 
-          text: 'Swiss Quality\n& Precision' 
+          title: 'Swiss Quality and Precision',
+          text: 'Punctual service, planned routes and attention to every detail.'
         },
-        { icon: Users, text: 'Professional\nChauffeurs' },
-        { icon: Gem, text: 'Luxury &\nComfort' },
-        { icon: Clock, text: 'Reliable &\nOn-Time' },
-        { icon: ShieldCheck, text: 'Safe &\nSecure Booking' }
+        { icon: Users, title: 'Professional Chauffeurs', text: 'Experienced chauffeurs who know Switzerland well.' },
+        { icon: Gem, title: 'Luxury and Comfort', text: 'Premium vehicles with climate control, quiet cabins and a smooth ride.' },
+        { icon: Clock, title: 'Reliable and On-Time', text: 'Flight tracking and live updates keep you on schedule.' },
+        { icon: ShieldCheck, title: 'Safe and Secure Booking', text: 'Transparent, fixed pricing with secure online payment.' }
       ].map((feature, i) => (
-        <div key={i} className="flex items-center gap-3 border-l border-white/20 pl-4 lg:pl-6 first:border-l-0 first:pl-0">
+        <div key={i} className="flex gap-3 rounded-xl border border-white/15 bg-white/[0.03] p-4">
           {feature.customIcon ? (
             feature.customIcon
           ) : feature.icon ? (
             <feature.icon size={28} className="shrink-0 text-[#f1c75b]" strokeWidth={1.5} />
           ) : null}
-          <span className="whitespace-pre-line text-[11px] font-normal leading-tight">
-            {feature.text}
-          </span>
+          <div>
+            <h3 className="text-sm font-bold leading-tight">{feature.title}</h3>
+            <p className="mt-1 text-[11px] leading-relaxed text-white/70">{feature.text}</p>
+          </div>
         </div>
       ))}
     </div>
@@ -270,7 +306,7 @@ export default async function HomePage() {
               Get a Personalized Quote Today
             </h2>
             <p className="mt-1 text-sm text-gray-200">
-              Plan your trip with our travel experts and receive a custom offer.
+              Plan your trip with our travel experts and receive a custom offer. Reply within one business day, or message us on WhatsApp for a quick answer.
             </p>
           </div>
 
@@ -282,17 +318,36 @@ export default async function HomePage() {
               <Mail size={16} className="mr-2" /> Request a Quote <ArrowRight size={16} className="ml-1" />
             </ButtonLink>
             
-            <a 
-              href="https://wa.me/41791234567"
+            {whatsappUrl && <a
+              href={whatsappUrl}
               target="_blank" 
               rel="noreferrer"
               className="flex items-center gap-2 rounded-full bg-white px-6 py-3 text-[12px] font-bold text-[#0d1b2a] transition hover:bg-gray-100"
             >
               <MessageSquare size={16} className="text-[#25D366]" />
               WhatsApp Us
-            </a>
+            </a>}
           </div>
 
+        </Container>
+      </section>
+
+      <section className="bg-[#f8f3e9] py-16">
+        <Container>
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="font-serif text-3xl font-bold text-[#0d1b2a] md:text-4xl">Frequently Asked Questions</h2>
+          </div>
+          <div className="mx-auto mt-8 max-w-3xl divide-y divide-[#0d1b2a]/10 rounded-2xl border border-[#0d1b2a]/10 bg-white px-5">
+            {HOME_FAQS.map(({ question, answer }) => (
+              <details key={question} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-sm font-bold text-[#0d1b2a] marker:content-none">
+                  {question}
+                  <Plus size={18} className="shrink-0 text-[#9b7012] transition-transform group-open:rotate-45" aria-hidden="true" />
+                </summary>
+                <p className="pt-3 text-sm leading-relaxed text-slate-600">{answer}</p>
+              </details>
+            ))}
+          </div>
         </Container>
       </section>
 

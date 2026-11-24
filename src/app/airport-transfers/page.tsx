@@ -10,42 +10,42 @@ import { getVehicles } from '@/lib/fleet';
 import { fallbackPublicConfig, getPublicConfig } from '@/lib/public-config';
 
 export const metadata: Metadata = {
-  title: 'Zurich Airport Transfer',
+  title: { absolute: 'Zurich Airport Transfer | Private Chauffeur from ZRH' },
   description:
-    'Private chauffeur transfers to and from Zurich Airport (ZRH), with flight tracking, meet-and-greet service and coverage across Switzerland and Europe.',
+    'Zurich Airport transfers with flight tracking, meet and greet and complimentary waiting time. Mercedes-Benz chauffeurs across Switzerland and Europe.',
 };
 
 const BOOK_URL = '/book?from=Zurich%20Airport%20(ZRH)';
 
 const HERO_POINTS = [
-  { icon: Plane, lines: ['Flight', 'Tracking'] },
-  { icon: Users, lines: ['Meet &', 'Greet'] },
-  { icon: Clock3, lines: ['Flexible', 'Waiting Time'] },
-  { icon: MapPin, lines: ['Service Across', 'Europe'] },
+  { icon: Plane, lines: ['Flight', 'tracking'] },
+  { icon: Users, lines: ['Meet and', 'greet'] },
+  { icon: Clock3, lines: ['Flexible', 'waiting time'] },
+  { icon: MapPin, lines: ['Service across', 'Europe'] },
 ];
 
 const BENEFITS = [
-  { icon: Plane, title: 'Flight Tracking', text: 'We monitor your flight for a timely pickup.' },
-  { icon: Users, title: 'Meet & Greet', text: 'Your chauffeur will be waiting at arrivals with a name board.' },
-  { icon: Clock3, title: 'Flexible Waiting Time', text: 'Complimentary waiting time, adapted to your flight and arrival process.' },
-  { icon: Car, title: 'Luxury Fleet', text: 'Travel in premium Mercedes-Benz vehicles with comfort and space.' },
+  { icon: Plane, title: 'Flight Tracking', text: 'We monitor your flight so your chauffeur arrives on time, even when your flight is early or delayed.' },
+  { icon: Users, title: 'Meet and Greet', text: 'Your chauffeur waits for you at arrivals with a name board.' },
+  { icon: Clock3, title: 'Flexible Waiting Time', text: 'Complimentary waiting time is adjusted to your flight and arrival process.' },
+  { icon: Car, title: 'Luxury Fleet', text: 'Travel in premium Mercedes-Benz vehicles designed for comfort and space.' },
   { icon: MapPin, title: 'Europe Coverage', text: 'Transfers from Zurich to all major cities in Switzerland and across Europe.' },
 ];
 
 const STEPS = [
   { icon: CalendarCheck, title: 'Book Online', text: 'Request your transfer in minutes.' },
-  { icon: Plane, title: 'We Track Your Flight', text: 'Real-time monitoring for a smooth pickup.' },
-  { icon: Users, title: 'Meet & Greet', text: 'Your chauffeur welcomes you at arrivals.' },
+  { icon: Plane, title: 'We Track Your Flight', text: 'Real-time monitoring keeps your pickup on schedule.' },
+  { icon: Users, title: 'Meet and Greet', text: 'Your chauffeur welcomes you at arrivals.' },
   { icon: Car, title: 'Enjoy Your Ride', text: 'Relax in a luxury vehicle to your destination.' },
 ];
 
 const DESTINATIONS = [
-  { name: 'Zurich City', time: '~ 20 min', image: '/images/airport-transfer/hero.png' },
-  { name: 'Lucerne', time: '~ 45 min', image: '/images/airport-transfer/popular-transfer-places/lucarne.jpg' },
-  { name: 'Interlaken', time: '~ 2 h 10 min', image: '/images/airport-transfer/popular-transfer-places/interlaken.jpg' },
-  { name: 'Grindelwald', time: '~ 2 h 20 min', image: '/images/airport-transfer/popular-transfer-places/Grindelwald.jpg' },
-  { name: 'Basel', time: '~ 1 h', image: '/images/airport-transfer/popular-transfer-places/basel.webp' },
-  { name: 'Other European Cities', time: 'e.g. Munich, Milan, Frankfurt', image: '/images/airport-transfer/popular-transfer-places/europe-trips.png' },
+  { name: 'Zurich City', time: 'About 20 minutes', image: '/images/airport-transfer/hero.png', alt: 'Chauffeur helping a passenger at Zurich Airport' },
+  { name: 'Lucerne', time: 'About 45 minutes', image: '/images/airport-transfer/popular-transfer-places/lucarne.jpg', alt: 'Chapel Bridge and tower in Lucerne' },
+  { name: 'Interlaken', time: 'About 2 hours 10 minutes', image: '/images/airport-transfer/popular-transfer-places/interlaken.jpg', alt: 'Interlaken valley with Swiss Alps' },
+  { name: 'Grindelwald', time: 'About 2 hours 20 minutes', image: '/images/airport-transfer/popular-transfer-places/Grindelwald.jpg', alt: 'Alpine village with snow-capped peaks in Grindelwald' },
+  { name: 'Basel', time: 'About 1 hour', image: '/images/airport-transfer/popular-transfer-places/basel.webp', alt: 'Basel old town skyline' },
+  { name: 'Other European Cities', time: 'Transfers to Munich, Milan, Frankfurt and more.', image: '/images/airport-transfer/popular-transfer-places/european-city-skyline.png', alt: 'European business-city skyline at blue hour' },
 ];
 
 // Optional photos for the two traveller cards. Drop files into /public/images/airport-transfer/ and set the paths here.
@@ -57,27 +57,27 @@ const TRAVELLERS: { icon: typeof Users; title: string; text: string; image?: str
 const FAQS = [
   {
     q: 'How do I book a Zurich Airport transfer?',
-    a: 'Enter your destination, date and number of passengers in the quote form, choose a vehicle and confirm online. Share your flight details so we can plan your pickup around your arrival.',
+    a: 'Enter your destination, date, time and passenger count in the booking form, or message us on WhatsApp. You can request your transfer in minutes.',
   },
   {
     q: 'Where will my chauffeur meet me at the airport?',
-    a: 'Your chauffeur waits in the arrivals hall with a personalised name board and helps you with your luggage to the vehicle.',
+    a: 'Your chauffeur meets you in the arrivals hall, holding a personalized name board with your name.',
   },
   {
     q: 'Do you track flights in case of delays?',
-    a: 'Yes. We monitor your flight in real time, so your pickup is scheduled around your actual arrival rather than the original timetable.',
+    a: 'Yes. We monitor your flight in real time, so your pickup adjusts to your actual arrival time.',
   },
   {
     q: 'Can you transfer me to other European cities?',
-    a: 'Yes. We drive from Zurich Airport to destinations across Switzerland and Europe, such as Munich, Milan and Frankfurt. Request a quote for your route.',
+    a: 'Yes. We cover transfers from Zurich to major cities across Switzerland and Europe. Contact us for a quote on your route.',
   },
   {
     q: 'How long is the free waiting time?',
-    a: 'Waiting time is adapted to your flight and arrival process. The allowance that applies to your journey is confirmed with your quote.',
+    a: 'Every booking includes complimentary waiting time. We will confirm the exact duration for your booking.',
   },
   {
     q: 'Are child seats available?',
-    a: 'Yes, child seats are available on request. Tell us the ages of the children when you book and we will prepare the right seats.',
+    a: 'Yes, on request. Ask for child seats when you book.',
   },
 ];
 
@@ -118,7 +118,11 @@ export default async function AirportTransfersPage() {
     <div className="overflow-hidden bg-[#fbf8f2] text-[#0d1b2a]">
       {/* HERO */}
       <section className="relative isolate bg-[#071e32] text-white">
-        <div aria-hidden="true" className="absolute inset-0">
+        <div
+          className="absolute inset-0"
+          role="img"
+          aria-label="Chauffeur in a dark suit opening the door of a black Mercedes-Benz at Zurich Airport"
+        >
           <div className="absolute inset-0 bg-cover bg-[70%_center] bg-no-repeat" style={{ backgroundImage: "url('/images/airport-transfer/hero.png')" }} />
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,30,50,.97)_0%,rgba(7,30,50,.9)_36%,rgba(7,30,50,.35)_66%,rgba(7,30,50,.08)_100%)] max-md:bg-[linear-gradient(180deg,rgba(7,30,50,.94)_0%,rgba(7,30,50,.82)_100%)]" />
         </div>
@@ -195,7 +199,7 @@ export default async function AirportTransfersPage() {
       <section className="pb-14">
         <Container className="grid max-w-[1240px] items-stretch gap-6 lg:grid-cols-[.95fr_1.05fr]">
           <div className="relative min-h-[220px] overflow-hidden rounded-2xl bg-[#071e32]">
-            <img src="/images/airport-transfer/why-choose-us/arrivals.png" alt="Arrivals hall at Zurich Airport" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+            <img src="/images/airport-transfer/why-choose-us/arrivals.png" alt={'Arrivals sign at Zurich Airport reading "Welcome to Zurich"'} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
             <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(0deg,rgba(7,30,50,.78)_0%,transparent_55%)]" />
             <p className="absolute bottom-5 left-6 font-serif text-[1.6rem] font-semibold italic text-white">Welcome to Zurich.</p>
           </div>
@@ -222,7 +226,12 @@ export default async function AirportTransfersPage() {
       <section id="airport-services" className="pb-14">
         <Container className="max-w-[1240px]">
           <div className="flex items-end justify-between gap-4">
-            <SectionHeading>Our Zurich Airport Transfer Fleet</SectionHeading>
+            <div>
+              <SectionHeading>Our Zurich Airport Transfer Fleet</SectionHeading>
+              <p className="mt-3 max-w-3xl text-[14px] font-medium leading-relaxed text-slate-600">
+                Choose the vehicle that fits your group and luggage. Our fleet includes Mercedes-Benz sedans and a minivan, plus a Renault SUV.
+              </p>
+            </div>
             <Link href="/fleet" className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-bold text-[#9a6700] transition hover:text-[#0d1b2a]">
               View All Vehicles <ArrowRight size={15} />
             </Link>
@@ -273,15 +282,20 @@ export default async function AirportTransfersPage() {
       <section className="pb-14">
         <Container className="max-w-[1240px]">
           <div className="flex items-end justify-between gap-4">
-            <SectionHeading>Popular Transfers from Zurich Airport</SectionHeading>
+            <div>
+              <SectionHeading>Popular Transfers from Zurich Airport</SectionHeading>
+              <p className="mt-3 max-w-3xl text-[14px] font-medium leading-relaxed text-slate-600">
+                Private transfers from Zurich Airport to Switzerland&apos;s most visited cities and mountain destinations.
+              </p>
+            </div>
             <a href="#quote" className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-bold text-[#9a6700] transition hover:text-[#0d1b2a]">
               View All Destinations <ArrowRight size={15} />
             </a>
           </div>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {DESTINATIONS.map(({ name, time, image }) => (
+            {DESTINATIONS.map(({ name, time, image, alt }) => (
               <a key={name} href="#quote" className="group relative flex min-h-[150px] items-end overflow-hidden rounded-xl bg-[#0d2b49] p-3.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#f1c75b]">
-                <img src={image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                <img src={image} alt={alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
                 <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,26,45,0)_35%,rgba(6,26,45,.92)_100%)]" />
                 <div className="relative">
                   <h3 className="font-sans text-[14px] font-extrabold leading-tight">{name}</h3>
@@ -299,7 +313,7 @@ export default async function AirportTransfersPage() {
           <div className="flex flex-col justify-center">
             <SectionHeading>Meet & Greet at Zurich Airport</SectionHeading>
             <p className="mt-3 text-[14px] font-medium leading-relaxed text-slate-600">
-              After your flight, your professional chauffeur will be waiting for you in the arrivals hall with a personalized name board, assist with your luggage and escort you to your vehicle.
+              After your flight, your professional chauffeur will wait for you in the arrivals hall with a personalized name board. They will help with your luggage and escort you to your vehicle.
             </p>
             <div className="mt-5">
               <CheckList tone="light" items={['Personalized airport pickup', 'Assistance with luggage', 'Comfortable, direct transfer']} />
@@ -307,11 +321,11 @@ export default async function AirportTransfersPage() {
           </div>
 
           <div className="relative min-h-[240px] overflow-hidden rounded-2xl bg-[#071e32] shadow-[0_18px_40px_-28px_rgba(13,27,42,.6)]">
-            <img src="/images/airport-transfer/why-choose-us/arrivals.png" alt="Arrivals sign at Zurich Airport" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+            <img src="/images/airport-transfer/why-choose-us/arrivals.png" alt="Chauffeur waiting in the Zurich Airport arrivals hall with a name board" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
           </div>
 
           <div>
-            <h2 className="font-serif text-[1.6rem] font-bold leading-tight text-[#0d1b2a] sm:text-[1.8rem]">For Business & Leisure Travelers</h2>
+            <h2 className="font-serif text-[1.6rem] font-bold leading-tight text-[#0d1b2a] sm:text-[1.8rem]">For Business and Leisure Travelers</h2>
             <div className="mt-4 grid gap-3">
               {TRAVELLERS.map(({ icon: Icon, title, text, image }) => (
                 <article key={title} className="flex items-center gap-4 rounded-xl bg-white p-3.5 shadow-[0_14px_30px_-24px_rgba(13,27,42,.55)]">

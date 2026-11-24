@@ -21,10 +21,12 @@ export function Turnstile({
   onToken,
   siteKey = '',
   theme = 'dark',
+  size = 'normal',
 }: {
   onToken: (token: string | null) => void;
   siteKey?: string;
   theme?: 'light' | 'dark';
+  size?: 'normal' | 'flexible';
 }) {
   const container = useRef<HTMLDivElement>(null);
   const callback = useRef(onToken);
@@ -48,6 +50,7 @@ export function Turnstile({
       widgetId = window.turnstile.render(container.current, {
         sitekey: effectiveSiteKey,
         theme,
+        size,
         callback: (token: string) => callback.current(token),
         'expired-callback': () => callback.current(null),
         'error-callback': () => callback.current(null),
@@ -75,7 +78,7 @@ export function Turnstile({
         window.turnstile.remove(widgetId);
       }
     };
-  }, [effectiveSiteKey, theme]);
+  }, [effectiveSiteKey, theme, size]);
 
-  return <div ref={container} className="min-h-[65px]" aria-label="Security verification" />;
+  return <div ref={container} className={`min-h-[65px] ${size === 'flexible' ? 'w-full' : ''}`} aria-label="Security verification" />;
 }

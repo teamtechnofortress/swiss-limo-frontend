@@ -491,10 +491,10 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f1c75b]">Featured private journeys</p>
               </div>
               <h2 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-white md:text-[34px]">
-                Explore more, your way.
+                Private Day Trips and Tours from Zurich
               </h2>
               <p className="mt-1.5 text-[13px] font-medium text-gray-200 md:text-sm">
-                Private day trips and tours designed around the places you want to see.
+                Explore Switzerland at your own pace. Every tour is private, so you choose the stops, the timing and the pace.
               </p>
             </div>
 
@@ -502,7 +502,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
               href="/trips"
               className="inline-flex w-fit items-center gap-2 rounded-full border border-white/50 bg-black/20 px-5 py-2.5 text-[12px] font-bold text-white backdrop-blur-sm transition hover:border-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             >
-              View all tours <ArrowRight size={14} />
+              View All Tours <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -566,7 +566,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                           tabIndex={on ? 0 : -1}
                           className="inline-flex items-center rounded-full bg-[#f1c75b] px-4 py-2.5 text-[12px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a] hover:shadow-[0_4px_12px_rgba(241,199,91,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 active:scale-[.98]"
                         >
-                          Book now <ArrowRight size={14} className="ml-1.5" strokeWidth={2.5} />
+                          Book Now <ArrowRight size={14} className="ml-1.5" strokeWidth={2.5} />
                         </Link>
                       </div>
                     </div>

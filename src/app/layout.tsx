@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s · ${publicConfig.site.name}`,
     },
     description:
-      'Private chauffeur transfers, airport transfers and tours across Switzerland. Executive and luxury vehicles, transparent per-kilometre pricing and secure online booking.',
+      'Book a private chauffeur in Switzerland. Zurich airport transfers, executive travel and fixed-price day tours in Mercedes-Benz vehicles. Book online today.',
   };
 }
 

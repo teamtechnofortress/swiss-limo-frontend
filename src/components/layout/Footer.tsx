@@ -6,7 +6,7 @@ import type { SiteSettings } from '@/lib/public-config';
 const quickLinks = [
   { href: '/', label: 'Home' },
   { href: '/airport-transfers', label: 'Airport Transfers' },
-  { href: '/trips', label: 'Day Trips & Tours' },
+  { href: '/trips', label: 'Day Trips and Tours' },
   { href: '/fleet', label: 'Our Fleet' },
   { href: '/about', label: 'About Us' },
   { href: '/contact', label: 'Contact' },
@@ -72,7 +72,7 @@ export function Footer({ site }: { site: SiteSettings }) {
               </p>
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/65">
-              Premium chauffeur services for airport transfers, business travel and private journeys across Switzerland. Travel in comfort, on your schedule, with every detail handled.
+              Swiss Aero Transfer provides premium chauffeur services for airport transfers, business travel and private journeys across Switzerland. Travel in comfort, on your schedule, with every detail handled.
             </p>
           </div>
 

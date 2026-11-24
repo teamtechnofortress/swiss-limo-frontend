@@ -1,18 +1,9 @@
 'use client';
 
 import { type FormEvent, type ReactNode, useState } from 'react';
-import { CalendarDays, CheckCircle2, LoaderCircle, Car, MapPin, PenLine, Plane, Send, ShieldCheck, Users, Mail, Phone, User } from 'lucide-react';
+import { CalendarDays, CheckCircle2, LoaderCircle, Car, MapPin, PenLine, Send, ShieldCheck, Users, Mail, Phone, User } from 'lucide-react';
 import { Turnstile } from '@/components/booking/Turnstile';
 import { api, ApiError } from '@/lib/api';
-
-export const WEF_SERVICES = [
-  'Zurich Airport Transfer',
-  'Davos Chauffeur Service',
-  'St. Moritz Transfer',
-  'Hourly Chauffeur Service',
-  'Executive & Delegation Travel',
-  'Special Event Transportation',
-];
 
 const VEHICLES = ['Mercedes-Benz E-Class', 'Mercedes-Benz S-Class', 'Mercedes-Benz V-Class', 'Renault Koleos (SUV)'];
 
@@ -29,7 +20,7 @@ function firstErrors(errors: Record<string, string[]>): FieldErrors {
 }
 
 const inputClass =
-  'h-10 w-full rounded-lg border border-transparent bg-white pl-9 pr-3 text-[12.5px] font-medium text-[#0d1b2a] outline-none transition placeholder:text-slate-400 focus:border-[#f1c75b] focus:ring-2 focus:ring-[#f1c75b]/40';
+  'h-12 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-[13px] font-medium text-[#0d1b2a] outline-none transition placeholder:text-slate-400 focus:border-[#f1c75b] focus:ring-2 focus:ring-[#f1c75b]/20';
 
 function Field({
   label, required, error, icon, children, className = '',
@@ -38,14 +29,14 @@ function Field({
 }) {
   return (
     <label className={`block min-w-0 ${className}`}>
-      <span className="mb-1.5 block text-[12px] font-bold text-white">
-        {label}{required && <span className="text-[#f1c75b]"> *</span>}
+      <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] !text-slate-100">
+        {label}{required && <span className="!text-[#f1c75b]"> *</span>}
       </span>
       <span className="relative block">
-        <span className="pointer-events-none absolute left-3 top-[20px] z-10 -translate-y-1/2 text-[#6a7685]">{icon}</span>
+        <span className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-slate-400">{icon}</span>
         {children}
       </span>
-      {error && <span className="mt-1 block text-[11px] font-semibold text-red-300">{error}</span>}
+      {error && <span className="mt-1.5 block text-xs font-medium text-red-600">{error}</span>}
     </label>
   );
 }
@@ -73,9 +64,7 @@ export function WefQuoteForm({ turnstileEnabled, turnstileSiteKey }: { turnstile
     const passengers = Number(value('passengers'));
     const details = [
       'WEF Davos 2027 quote request',
-      `Service: ${value('service')}`,
       value('vehicle') ? `Vehicle preference: ${value('vehicle')}` : '',
-      value('flight') ? `Flight number: ${value('flight')}` : '',
       value('requirements') ? `\nAdditional requirements:\n${value('requirements')}` : '',
     ].filter(Boolean).join('\n');
 
@@ -114,25 +103,18 @@ export function WefQuoteForm({ turnstileEnabled, turnstileSiteKey }: { turnstile
 
   if (success) {
     return (
-      <div role="status" className="py-10 text-center">
+      <div role="status" className="rounded-xl border border-[#f1c75b]/40 bg-[#fffbef] px-6 py-12 text-center">
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a]"><CheckCircle2 size={30} /></span>
-        <p className="mt-5 font-serif text-3xl font-bold text-white">Thank you</p>
-        <p className="mx-auto mt-3 max-w-sm text-[14px] font-medium leading-relaxed text-white/85">{success.message}</p>
-        <p className="mt-5 text-[11px] font-bold tracking-wide text-[#f1c75b]">Reference: {success.reference}</p>
+        <p className="mt-5 font-serif text-3xl font-bold text-[#0d1b2a]">Thank you</p>
+        <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-slate-600">{success.message}</p>
+        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9c6c14]">Reference: {success.reference}</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={submit} noValidate className="mt-5 grid gap-3.5">
-      <Field label="Service Required" required error={fieldErrors.service} icon={<Car size={15} />}>
-        <select name="service" required defaultValue="" className={`${inputClass} appearance-none`}>
-          <option value="" disabled>Select a service (e.g. Airport Transfer, Hourly, etc.)</option>
-          {WEF_SERVICES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </Field>
-
-      <div className="grid gap-3.5 sm:grid-cols-2">
+    <form onSubmit={submit} noValidate className="mt-7 space-y-5">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Pickup Date" required error={fieldErrors.travel_date} icon={<CalendarDays size={15} />}>
           <input type="date" name="pickup_date" required className={inputClass} />
         </Field>
@@ -159,11 +141,7 @@ export function WefQuoteForm({ turnstileEnabled, turnstileSiteKey }: { turnstile
         </Field>
       </div>
 
-      <Field label="Flight Number (if applicable)" icon={<Plane size={15} />}>
-        <input name="flight" placeholder="e.g. LX123" className={inputClass} />
-      </Field>
-
-      <div className="grid gap-3.5 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Full Name" required error={fieldErrors.name} icon={<User size={15} />}>
           <input name="name" autoComplete="name" required className={inputClass} />
         </Field>
@@ -176,27 +154,36 @@ export function WefQuoteForm({ turnstileEnabled, turnstileSiteKey }: { turnstile
       </Field>
 
       <Field label="Additional Requirements" error={fieldErrors.message} icon={<PenLine size={15} />}>
-        <textarea name="requirements" rows={3} placeholder="Tell us about your travel plan, meetings, or any special requests…" className={`${inputClass} h-auto resize-y py-2.5`} />
+        <textarea name="requirements" rows={4} placeholder="Tell us about your travel plan, meetings, or any special requests." className={`${inputClass} h-auto min-h-32 resize-y py-3.5`} />
       </Field>
 
       {turnstileEnabled && (
-        <div className="flex justify-center">
-          <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} theme="dark" />
+        <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
+          <div className="flex min-w-0 items-start gap-2">
+            <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#d99b14]" />
+            <div>
+              <p className="text-[11px] font-semibold text-[#59430b]">Security verification is required before sending your quote request.</p>
+              <p className="mt-0.5 text-[10px] text-[#806522]">This helps protect our team from automated messages.</p>
+            </div>
+          </div>
+          <div className="mt-3 w-full overflow-hidden">
+            <Turnstile onToken={setTurnstileToken} siteKey={turnstileSiteKey} theme="light" size="flexible" />
+          </div>
         </div>
       )}
 
-      {error && <p role="alert" className="rounded-lg border border-red-300/40 bg-red-500/15 px-3 py-2 text-[12px] font-semibold text-red-100">{error}</p>}
+      {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>}
 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-1 inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-full bg-[#f1c75b] px-6 text-[14px] font-bold text-[#0d1b2a] shadow-[0_12px_26px_-14px_rgba(241,199,91,.9)] transition hover:bg-[#e6b941] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:pointer-events-none disabled:opacity-60"
+        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f1c75b] px-6 text-[13px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a] hover:shadow-[0_5px_15px_rgba(241,199,91,0.38)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d1b2a] disabled:pointer-events-none disabled:opacity-60"
       >
         {isSubmitting ? <LoaderCircle size={17} className="animate-spin" /> : <Send size={16} />}
         {isSubmitting ? 'Sending…' : 'Submit Request for Quote'}
       </button>
-      <p className="flex items-center justify-center gap-2 text-center text-[11.5px] font-medium text-white/80">
-        <ShieldCheck size={14} className="text-[#f1c75b]" /> We will confirm availability and send a tailored quotation shortly.
+      <p className="flex items-center justify-center gap-2 text-center text-[11px] text-white/80">
+        <Phone size={13} /> We will confirm availability and send a tailored quotation shortly.
       </p>
     </form>
   );

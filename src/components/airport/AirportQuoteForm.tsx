@@ -14,7 +14,6 @@ type JourneyType = 'arrival' | 'departure' | 'round-trip';
 const TABS = [
   { value: 'arrival' as const, label: 'Airport Transfer', icon: PlaneLanding },
   { value: 'departure' as const, label: 'To Airport (Departure)', icon: PlaneTakeoff },
-  { value: 'round-trip' as const, label: 'Round Trip', icon: Repeat },
 ];
 
 const fieldBase =
@@ -68,25 +67,31 @@ export function AirportQuoteForm() {
 
   return (
     <div className="mx-auto w-full max-w-[1150px] px-4 sm:px-6 lg:px-8">
-      <div role="tablist" aria-label="Journey type" className="relative z-10 flex w-full flex-wrap gap-1 rounded-t-[22px] bg-white px-2 pt-2 sm:w-fit">
-        {TABS.map(({ value, label, icon: Icon }) => {
-          const active = journeyType === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setJourneyType(value)}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold transition sm:text-[12px] ${
-                active ? 'bg-[#071e32] text-white' : 'text-[#0d1b2a] hover:bg-[#f8f3e9]'
-              }`}
-            >
-              <Icon size={15} strokeWidth={2.2} className={active ? 'text-[#f1c75b]' : ''} />
-              {label}
-            </button>
-          );
-        })}
+      <div className="relative z-10 rounded-t-[22px] bg-white px-4 pt-4">
+        <h2 className="text-sm font-bold text-[#0d1b2a]">Get your transfer quote</h2>
+        <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-slate-600">
+          Choose airport transfer, departure to the airport or round trip. Then enter your destination, date, time and passenger count.
+        </p>
+        <div role="tablist" aria-label="Journey type" className="mt-3 flex w-full flex-wrap gap-1 sm:w-fit">
+          {TABS.map(({ value, label, icon: Icon }) => {
+            const active = journeyType === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setJourneyType(value)}
+                className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[11px] font-bold transition sm:text-[12px] ${
+                  active ? 'bg-[#071e32] text-white' : 'text-[#0d1b2a] hover:bg-[#f8f3e9]'
+                }`}
+              >
+                <Icon size={15} strokeWidth={2.2} className={active ? 'text-[#f1c75b]' : ''} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <form

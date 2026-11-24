@@ -9,13 +9,13 @@ import { PlaceField } from '@/components/booking/PlaceField';
 import { getPublicConfig } from '@/lib/public-config';
 import type { PlaceValue } from '@/lib/types';
 
-const heroImage = '/images/home/herofinal.png';
+const heroImage = '/images/home/hero.png';
 
 const TRUST_BADGES = [
-  { icon: Star, title: '4.9/5', subtitle: 'Client Rating' },
-  { icon: Users2, title: '10,000+', subtitle: 'Happy Travelers' },
-  { icon: Clock3, title: '24/7', subtitle: 'Support' },
-  { icon: ShieldCheck, title: 'Swiss', subtitle: 'Service Quality' },
+  { icon: Star, title: 'Rated 4.9/5', subtitle: 'by clients' },
+  { icon: Users2, title: 'Trusted by 10,000+', subtitle: 'travelers' },
+  { icon: Clock3, title: '24/7', subtitle: 'support' },
+  { icon: ShieldCheck, title: 'Swiss', subtitle: 'service quality' },
 ];
 
 export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?: string }) {
@@ -57,7 +57,11 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
   return (
     <section className="relative isolate bg-[#0d1b2a] pt-12 pb-24 md:pt-16 md:pb-32 z-20">
       
-      <div className="absolute inset-0 overflow-hidden">
+      <div
+        className="absolute inset-0 overflow-hidden"
+        role="img"
+        aria-label="Uniformed chauffeur opening the door of a black Mercedes-Benz in front of a Swiss hotel"
+      >
         <div
           className="absolute inset-0 bg-cover bg-right bg-no-repeat"
           style={{ backgroundImage: `url(${heroImage})` }}
@@ -79,12 +83,11 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
 
           <h1 className="text-4xl font-bold leading-[1.1] text-white md:text-5xl lg:text-6xl"
               style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}
-          > Your Journey.<br />
-          Our <span className="text-white">Swiss</span> <span className="text-[#f1c75b]">Precision.</span>
+          >Swiss Chauffeur Service, Built Around Your Schedule
           </h1>
 
           <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-gray-100 drop-shadow-md md:text-base">
-            Airport transfers, private chauffeur services and fixed-price day trips across Switzerland.
+            Airport pickups, private drivers and fixed-price tours across Switzerland.
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -129,7 +132,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
         className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#0d1b2a] px-4 py-2.5 text-[11px] font-bold text-white shadow-sm transition sm:px-6 sm:text-xs"
       >
         <Car size={16} />
-        Transfer / Ride
+        Find your transfer
       </button>
       <Link
         href="/trips"
@@ -141,6 +144,10 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
     </div>
 
     <form onSubmit={handleBookNow} className="-mt-[1px] rounded-[24px] rounded-tl-none border border-gray-100 bg-white p-4 pb-5 shadow-[0_20px_50px_rgba(13,27,42,0.13)] md:p-5">
+
+     <p className="mb-3 text-xs leading-relaxed text-slate-600">
+       Enter your pickup location, destination, date, time and passenger count to see available vehicles and fixed prices.
+     </p>
 
      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1.1fr)] xl:items-end xl:gap-3">
         <div className="min-w-0">
