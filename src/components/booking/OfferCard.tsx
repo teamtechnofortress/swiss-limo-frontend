@@ -1,19 +1,28 @@
 import { Check, Car, Users, Briefcase } from 'lucide-react';
-import { CATEGORY_LABEL, money } from '@/lib/format';
+import { money } from '@/lib/format';
+import type { BookingContent } from '@/content/booking';
 import type { QuoteOffer } from '@/lib/types';
 
 export function OfferCard({
   offer,
   selected,
   onSelect,
+  copy,
 }: {
   offer: QuoteOffer;
   selected: boolean;
   onSelect: () => void;
+  copy: BookingContent['offer'];
 }) {
   const total = offer.vat.gross;
   const vatPercent = (offer.vat.rate_bp / 100).toFixed(2);
-  const category = CATEGORY_LABEL[offer.category as keyof typeof CATEGORY_LABEL] ?? offer.category;
+  const category = offer.category === 'first_class'
+    ? copy.categories.firstClass
+    : offer.category === 'executive'
+      ? copy.categories.executive
+      : offer.category === 'van'
+        ? copy.categories.van
+        : offer.category;
 
   return (
     <button
@@ -46,17 +55,17 @@ export function OfferCard({
           <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-600">
             <span className="flex items-center gap-1">
               <Users size={14} />
-              {offer.passenger_capacity} Passengers
+              {copy.passengers.replace('{count}', String(offer.passenger_capacity))}
             </span>
             <span className="flex items-center gap-1">
               <Briefcase size={14} />
-              {offer.luggage_capacity} Bags
+              {copy.bags.replace('{count}', String(offer.luggage_capacity))}
             </span>
           </div>
           <h3 className="font-sans text-sm sm:text-base font-semibold text-[#0f172a] leading-normal">{offer.name}</h3>
           
           {offer.price.discount > 0 && (
-            <p className="mt-1 text-[10px] sm:text-[11px] text-[#eab308] font-semibold">Discount: {money(offer.price.discount)}</p>
+            <p className="mt-1 text-[10px] sm:text-[11px] text-[#eab308] font-semibold">{copy.discount.replace('{amount}', money(offer.price.discount))}</p>
           )}
         </div>
       </div>
@@ -66,8 +75,8 @@ export function OfferCard({
           <p className=" text-sm sm:text-2xl text-[#0f172a] leading-none">{money(total)}</p>
           <p className="mt-1 text-[9px] sm:text-[11px] text-gray-400">
             {offer.vat.included
-              ? `incl. VAT ${vatPercent}%`
-              : `plus VAT ${vatPercent}%`}
+              ? copy.vatIncluded.replace('{rate}', vatPercent)
+              : copy.vatExcluded.replace('{rate}', vatPercent)}
           </p>
         </div>
         

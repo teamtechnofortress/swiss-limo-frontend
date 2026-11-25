@@ -3,6 +3,7 @@
 import { type FormEvent, type ReactNode, useState } from 'react';
 import { CalendarDays, CheckCircle2, LoaderCircle, Luggage, Mail, MapPin, MessageSquare, Phone, Send, ShieldCheck, Users } from 'lucide-react';
 import { Turnstile } from '@/components/booking/Turnstile';
+import type { EnquiryFormCopy } from '@/content/contact';
 import { api, ApiError } from '@/lib/api';
 
 type EnquiryType = 'general' | 'trip' | 'vehicle' | 'booking' | 'corporate';
@@ -50,6 +51,7 @@ export function EnquiryForm({
   vehicleSlug,
   sourcePath,
   contextLabel,
+  copy,
   turnstileEnabled,
   turnstileSiteKey,
 }: {
@@ -58,6 +60,7 @@ export function EnquiryForm({
   /** The original trip or vehicle page, recorded with the enquiry. */
   sourcePath?: string;
   contextLabel?: string;
+  copy: EnquiryFormCopy;
   turnstileEnabled: boolean;
   turnstileSiteKey: string;
 }) {
@@ -75,7 +78,7 @@ export function EnquiryForm({
     setFieldErrors({});
 
     if (turnstileEnabled && !turnstileToken) {
-      setError('Please complete the security check before sending your enquiry.');
+      setError(copy.errors.security);
       return;
     }
 
@@ -121,7 +124,7 @@ export function EnquiryForm({
         setFieldErrors(firstErrors(caught.fieldErrors));
         setError(caught.message);
       } else {
-        setError('We could not send your enquiry. Please try again.');
+        setError(copy.errors.fallback);
       }
     } finally {
       setIsSubmitting(false);
@@ -134,9 +137,9 @@ export function EnquiryForm({
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#f1c75b] text-[#0d1b2a]">
           <CheckCircle2 size={30} />
         </span>
-        <p className="mt-5 font-serif text-3xl font-bold text-[#0d1b2a]">Thank you</p>
-        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">{success.message}</p>
-        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9c6c14]">Reference: {success.reference}</p>
+        <p className="mt-5 font-serif text-3xl font-bold text-[#0d1b2a]">{copy.success.title}</p>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-600">{copy.success.message}</p>
+        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#9c6c14]">{copy.success.reference}: {success.reference}</p>
       </div>
     );
   }
@@ -149,7 +152,7 @@ export function EnquiryForm({
             <MessageSquare size={17} />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#906317]">Enquiring about</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#906317]">{copy.context.eyebrow}</p>
             <p className="truncate text-sm font-bold text-[#0d1b2a]">{contextLabel}</p>
           </div>
         </div>
@@ -159,26 +162,26 @@ export function EnquiryForm({
         <div className="mb-4 flex items-center gap-3">
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0d1b2a] text-[#f1c75b]"><Mail size={14} /></span>
           <div>
-            <p className="text-sm font-bold text-[#0d1b2a]">Your contact details</p>
-            <p className="text-[11px] text-slate-500">So our travel team can get back to you.</p>
+            <p className="text-sm font-bold text-[#0d1b2a]">{copy.contact.title}</p>
+            <p className="text-[11px] text-slate-500">{copy.contact.description}</p>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Full name" error={fieldErrors.name}>
+          <FormField label={copy.fields.fullName} error={fieldErrors.name}>
           <input className={inputClass} name="name" autoComplete="name" required />
           </FormField>
-          <FormField label="Email address" error={fieldErrors.email}>
+          <FormField label={copy.fields.email} error={fieldErrors.email}>
           <input className={inputClass} type="email" name="email" autoComplete="email" required />
           </FormField>
-          <FormField label="Phone number" error={fieldErrors.phone}>
+          <FormField label={copy.fields.phone} error={fieldErrors.phone}>
           <input className={inputClass} type="tel" name="phone" autoComplete="tel" />
           </FormField>
-          <FormField label="Preferred contact method" error={fieldErrors.preferred_contact_method}>
+          <FormField label={copy.fields.preferredContact} error={fieldErrors.preferred_contact_method}>
           <select className={inputClass} name="preferred_contact_method" defaultValue="">
-            <option value="">No preference</option>
-            <option value="email">Email</option>
-            <option value="phone">Phone</option>
-            <option value="whatsapp">WhatsApp</option>
+            <option value="">{copy.contactMethods.noPreference}</option>
+            <option value="email">{copy.contactMethods.email}</option>
+            <option value="phone">{copy.contactMethods.phone}</option>
+            <option value="whatsapp">{copy.contactMethods.whatsapp}</option>
           </select>
           </FormField>
         </div>
@@ -189,39 +192,39 @@ export function EnquiryForm({
           <div className="mb-4 flex items-center gap-3">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#fff1c9] text-[#9c6c14]"><CalendarDays size={14} /></span>
             <div>
-              <p className="text-sm font-bold text-[#0d1b2a]">Journey details</p>
-              <p className="text-[11px] text-slate-500">Optional details help us prepare an accurate quote.</p>
+              <p className="text-sm font-bold text-[#0d1b2a]">{copy.journey.title}</p>
+              <p className="text-[11px] text-slate-500">{copy.journey.description}</p>
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label="Travel date" error={fieldErrors.travel_date}>
+            <FormField label={copy.fields.travelDate} error={fieldErrors.travel_date}>
               <div className="relative"><CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input className={`${inputClass} pl-10`} type="date" name="travel_date" /></div>
             </FormField>
-            <FormField label="Return date" error={fieldErrors.return_date}>
+            <FormField label={copy.fields.returnDate} error={fieldErrors.return_date}>
               <div className="relative"><CalendarDays className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input className={`${inputClass} pl-10`} type="date" name="return_date" /></div>
             </FormField>
-            <FormField label="Passengers" error={fieldErrors.passengers}>
+            <FormField label={copy.fields.passengers} error={fieldErrors.passengers}>
               <div className="relative"><Users className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input className={`${inputClass} pl-10`} type="number" name="passengers" min="1" inputMode="numeric" /></div>
             </FormField>
             {vehicleSlug && (
-              <FormField label="Luggage" error={fieldErrors.luggage}>
+              <FormField label={copy.fields.luggage} error={fieldErrors.luggage}>
                 <div className="relative"><Luggage className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input className={`${inputClass} pl-10`} type="number" name="luggage" min="0" inputMode="numeric" /></div>
               </FormField>
             )}
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <FormField label="Pickup location" error={fieldErrors.pickup_location}>
+            <FormField label={copy.fields.pickup} error={fieldErrors.pickup_location}>
               <div className="relative"><MapPin className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input className={`${inputClass} pl-10`} name="pickup_location" autoComplete="address-level2" /></div>
             </FormField>
-            <FormField label="Drop-off location" error={fieldErrors.dropoff_location}>
+            <FormField label={copy.fields.dropoff} error={fieldErrors.dropoff_location}>
               <div className="relative"><MapPin className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} /><input className={`${inputClass} pl-10`} name="dropoff_location" autoComplete="address-level2" /></div>
             </FormField>
           </div>
         </div>
       )}
 
-      <FormField label="How can we help?" error={fieldErrors.message}>
-        <textarea className={`${inputClass} h-auto min-h-32 resize-y py-3.5`} name="message" placeholder="Tell us about your journey or request..." required />
+      <FormField label={copy.fields.message} error={fieldErrors.message}>
+        <textarea className={`${inputClass} h-auto min-h-32 resize-y py-3.5`} name="message" placeholder={copy.fields.messagePlaceholder} required />
       </FormField>
 
       {turnstileEnabled && (
@@ -230,8 +233,8 @@ export function EnquiryForm({
             <div className="flex min-w-0 items-start gap-2">
               <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#d99b14]" />
               <div>
-                <p className="text-[11px] font-semibold text-[#59430b]">Security verification is required before sending your enquiry.</p>
-                <p className="mt-0.5 text-[10px] text-[#806522]">This helps protect our team from automated messages.</p>
+                <p className="text-[11px] font-semibold text-[#59430b]">{copy.security.title}</p>
+                <p className="mt-0.5 text-[10px] text-[#806522]">{copy.security.description}</p>
               </div>
             </div>
             <div className="flex justify-center sm:justify-end">
@@ -246,9 +249,9 @@ export function EnquiryForm({
       <button type="submit" className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#f1c75b] px-6 text-[13px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a] hover:shadow-[0_5px_15px_rgba(241,199,91,0.38)] disabled:pointer-events-none disabled:opacity-60" disabled={isSubmitting}>
         {isSubmitting ? <LoaderCircle className="animate-spin" size={17} /> : null}
         {!isSubmitting && <Send size={16} />}
-        {isSubmitting ? 'Sending enquiry…' : 'Send enquiry'}
+        {isSubmitting ? copy.sending : copy.submit}
       </button>
-      <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><Phone size={13} /> We usually reply within one working day.</p>
+      <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><Phone size={13} /> {copy.responseTime}</p>
     </form>
   );
 }

@@ -8,17 +8,19 @@ import { useRouter } from 'next/navigation';
 import { PlaceField } from '@/components/booking/PlaceField';
 import { getPublicConfig } from '@/lib/public-config';
 import type { PlaceValue } from '@/lib/types';
+import type { HomeContent } from '@/content/home';
 
 const heroImage = '/images/home/hero.png';
 
-const TRUST_BADGES = [
-  { icon: Star, title: 'Rated 4.9/5', subtitle: 'by clients' },
-  { icon: Users2, title: 'Trusted by 10,000+', subtitle: 'travelers' },
-  { icon: Clock3, title: '24/7', subtitle: 'support' },
-  { icon: ShieldCheck, title: 'Swiss', subtitle: 'service quality' },
-];
+const trustBadgeIcons = [Star, Users2, Clock3, ShieldCheck];
 
-export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?: string }) {
+export function Hero({
+  content,
+  googleBrowserKey: initialKey = '',
+}: {
+  content: HomeContent['hero'];
+  googleBrowserKey?: string;
+}) {
   const router = useRouter();
   
   const [googleBrowserKey, setGoogleBrowserKey] = useState(initialKey);
@@ -77,24 +79,24 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
           <div data-header-solid-trigger className="mb-2 flex items-center gap-3">
             <span className="h-px w-8 bg-[#f1c75b]" />
             <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-white">
-              Private Chauffeur Services in Switzerland
+              {content.eyebrow}
             </p>
           </div>
 
           <h1 className="text-4xl font-bold leading-[1.1] text-white md:text-5xl lg:text-6xl"
               style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}
-          >Swiss Chauffeur Service, Built Around Your Schedule
+          >{content.title}
           </h1>
 
           <p className="mt-2 max-w-md text-sm font-medium leading-relaxed text-gray-100 drop-shadow-md md:text-base">
-            Airport pickups, private drivers and fixed-price tours across Switzerland.
+            {content.description}
           </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <Link 
               href="/book" 
               className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f1c75b] px-6 py-2.5 text-[12px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a]" >
-              <Car size={16} strokeWidth={2.5} /> Book a Transfer
+              <Car size={16} strokeWidth={2.5} /> {content.bookTransfer}
             </Link>
             
             <ButtonLink 
@@ -102,12 +104,14 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
               variant="outline"
               className="!rounded-full !border-white/50 !bg-black/20 backdrop-blur-sm !px-6 !py-2.5 !text-[12px] !font-bold !text-white hover:!border-white hover:!bg-white/20"
             >
-              <MapPin size={16} strokeWidth={2} className="mr-2" /> Explore Day Trips
+              <MapPin size={16} strokeWidth={2} className="mr-2" /> {content.exploreDayTrips}
             </ButtonLink>
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-5 border-t border-white/20 pt-3 md:gap-6">
-            {TRUST_BADGES.map(({ icon: Icon, title, subtitle }, i) => (
+            {content.trustBadges.map(({ title, subtitle }, i) => {
+              const Icon = trustBadgeIcons[i];
+              return (
               <div key={i} className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#f1c75b]/50 bg-[#0d1b2a]/50 backdrop-blur-md">
                   <Icon size={14} className="text-[#f1c75b]" />
@@ -117,7 +121,8 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
                   <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-300">{subtitle}</span>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
         </div>
@@ -132,33 +137,33 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
         className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full bg-[#0d1b2a] px-4 py-2.5 text-[11px] font-bold text-white shadow-sm transition sm:px-6 sm:text-xs"
       >
         <Car size={16} />
-        Find your transfer
+        {content.transferTab}
       </button>
       <Link
         href="/trips"
         className="flex items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-[11px] font-bold text-[#0d1b2a] transition hover:bg-[#fff8e8] hover:text-[#8a5b00] sm:px-6 sm:text-xs"
       >
         <Mountain size={16} />
-        Day Trip / Tour
+        {content.dayTripTab}
       </Link>
     </div>
 
     <form onSubmit={handleBookNow} className="-mt-[1px] rounded-[24px] rounded-tl-none border border-gray-100 bg-white p-4 pb-5 shadow-[0_20px_50px_rgba(13,27,42,0.13)] md:p-5">
 
      <p className="mb-3 text-xs leading-relaxed text-slate-600">
-       Enter your pickup location, destination, date, time and passenger count to see available vehicles and fixed prices.
+       {content.formDescription}
      </p>
 
      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1.35fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1.1fr)] xl:items-end xl:gap-3">
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
-            Pickup Location
+            {content.pickupLabel}
           </label>
           <PlaceField
             id="hero-pickup"
             value={pickup}
             onChange={setPickup}
-            placeholder="Zurich Airport (ZRH)"
+            placeholder={content.pickupPlaceholder}
             googleBrowserKey={googleBrowserKey}
             statusPosition="overlay"
             className="w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2.5 h-[44px] text-[13px] font-medium text-[#0d1b2a] placeholder:text-gray-500 transition focus:border-[#f1c75b] focus:outline-none shadow-sm"
@@ -168,13 +173,13 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
 
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
-            Destination
+            {content.destinationLabel}
           </label>
           <PlaceField
             id="hero-dropoff"
             value={dropoff}
             onChange={setDropoff}
-            placeholder="Lucerne, Switzerland"
+            placeholder={content.destinationPlaceholder}
             googleBrowserKey={googleBrowserKey}
             statusPosition="overlay"
             className="w-full rounded-lg border border-gray-200 bg-white pl-8 pr-2.5 h-[44px] text-[13px] font-medium text-[#0d1b2a] placeholder:text-gray-500 transition focus:border-[#f1c75b] focus:outline-none shadow-sm"
@@ -184,7 +189,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
 
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
-            Date
+            {content.dateLabel}
           </label>
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <CalendarDays size={18} className="shrink-0 text-[#0d1b2a]" />
@@ -199,7 +204,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
 
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
-            Time
+            {content.timeLabel}
           </label>
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <Clock size={18} className="shrink-0 text-[#0d1b2a]" />
@@ -214,7 +219,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
 
         <div className="min-w-0">
           <label className="mb-1.5 block text-xs font-bold text-[#0d1b2a]">
-            Passengers
+            {content.passengersLabel}
           </label>
           <div className="flex h-[44px] items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 shadow-sm transition focus-within:border-[#f1c75b]">
             <Users size={18} className="shrink-0 text-[#0d1b2a]" />
@@ -223,13 +228,9 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
               onChange={(e) => setPassengers(Number(e.target.value))}
               className="w-full min-w-0 appearance-none bg-transparent text-[13px] font-medium text-[#0d1b2a] outline-none"
             >
-              <option value="1">1 Passenger</option>
-              <option value="2">2 Passengers</option>
-              <option value="3">3 Passengers</option>
-              <option value="4">4 Passengers</option>
-              <option value="5">5 Passengers</option>
-              <option value="6">6 Passengers</option>
-              <option value="7">7 Passengers</option>
+              {content.passengers.map((passenger) => (
+                <option key={passenger.value} value={passenger.value}>{passenger.label}</option>
+              ))}
             </select>
             <ChevronDown size={16} className="shrink-0 text-[#0d1b2a]" />
           </div>
@@ -240,7 +241,7 @@ export function Hero({ googleBrowserKey: initialKey = '' }: { googleBrowserKey?:
             type="submit"
             className="flex h-[48px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-full border-none bg-[#f1c75b] px-4 text-[13px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a]"
           >
-            Book Now
+            {content.submitLabel}
             <ArrowRight size={16} strokeWidth={2.5} />
           </button>
         </div>

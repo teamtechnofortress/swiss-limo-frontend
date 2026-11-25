@@ -1,10 +1,22 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Cormorant_Garamond, Montserrat } from 'next/font/google';
+import { getLocale } from 'next-intl/server';
 import './globals.css';
-import { Header } from '@/components/layout/Header';
-import { Footer } from '@/components/layout/Footer';
+import { SiteChrome } from '@/components/layout/SiteChrome';
+import type { LayoutCopy } from '@/components/layout/copy';
+import { layoutCopy as deCHLayoutCopy } from '@/messages/de-CH/layout';
+import { layoutCopy as enLayoutCopy } from '@/messages/en/layout';
+import { layoutCopy as frCHLayoutCopy } from '@/messages/fr-CH/layout';
+import { layoutCopy as itCHLayoutCopy } from '@/messages/it-CH/layout';
 import { fallbackPublicConfig, getPublicConfig } from '@/lib/public-config';
+
+const layoutCopies: Record<'en' | 'de-CH' | 'fr-CH' | 'it-CH', LayoutCopy> = {
+  en: enLayoutCopy,
+  'de-CH': deCHLayoutCopy,
+  'fr-CH': frCHLayoutCopy,
+  'it-CH': itCHLayoutCopy,
+};
 
 const serif = Cormorant_Garamond({
   subsets: ['latin'],
@@ -35,14 +47,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const publicConfig = await getPublicConfig().catch(() => fallbackPublicConfig());
+  const [publicConfig, locale] = await Promise.all([
+    getPublicConfig().catch(() => fallbackPublicConfig()),
+    getLocale(),
+  ]);
 
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+    <html lang={locale} className={`${serif.variable} ${sans.variable}`}>
       <body className="flex min-h-screen flex-col">
-        <Header site={publicConfig.site} />
-        <main className="flex-1">{children}</main>
-        <Footer site={publicConfig.site} />
+        <SiteChrome site={publicConfig.site} copies={layoutCopies}>
+          {children}
+        </SiteChrome>
       </body>
     </html>
   );

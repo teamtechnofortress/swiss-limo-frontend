@@ -15,6 +15,7 @@ interface PlaceFieldProps {
   className?: string;
   icon?: React.ReactNode;
   statusPosition?: 'inline' | 'overlay';
+  selectedLabel?: string;
 }
 
 export function PlaceField({ 
@@ -27,6 +28,7 @@ export function PlaceField({
   className = "w-full min-w-0 truncate rounded-xl border border-gray-200 bg-white pl-11 pr-4 py-3 text-[15px] !font-normal text-black placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-1 focus:ring-[#eab308]",
   icon = <MapPin size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />,
   statusPosition = 'inline',
+  selectedLabel = 'Address selected',
 }: PlaceFieldProps) {
   const [text, setText] = useState(value?.text ?? initialQuery ?? '');
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
@@ -144,7 +146,7 @@ export function PlaceField({
             : 'mt-1.5 text-xs text-[#d97706]'}
           aria-live="polite"
         >
-          Address selected
+          {selectedLabel}
         </p>
       )}
 

@@ -21,25 +21,72 @@ export function vehiclePriceLabel(vehicle: Pick<Vehicle, 'display_fare_minor' | 
   return `Minimum fare ${price}`;
 }
 
+export type VehicleCardCopy = {
+  categories: Record<VehicleCategory, string>;
+  viewVehicle: string;
+  passengerCapacity: string;
+  luggageCapacity: string;
+  requestQuote: string;
+  bookNow: string;
+  pricing: string;
+  priceOnRequest: string;
+  getQuote: string;
+  startingFrom: string;
+  baseFare: string;
+  baseFareIncludesFirstKm: string;
+  minimumFare: string;
+};
+
+export const defaultVehicleCardCopy: VehicleCardCopy = {
+  categories: {
+    executive: 'Executive',
+    first_class: 'First class',
+    van: 'Vans',
+  },
+  viewVehicle: 'View {vehicle}',
+  passengerCapacity: 'Up to {count}',
+  luggageCapacity: '{count} bags',
+  requestQuote: 'Request a quote',
+  bookNow: 'Book now',
+  pricing: 'Pricing',
+  priceOnRequest: 'Price on request',
+  getQuote: 'Get a quote',
+  startingFrom: 'Starting from',
+  baseFare: 'Base fare',
+  baseFareIncludesFirstKm: 'Base fare · includes first {distance} km',
+  minimumFare: 'Minimum fare',
+};
+
+function fillTemplate(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`));
+}
+
 /** Separates the public vehicle fare into card-friendly price and supporting copy. */
-export function vehiclePriceSummary(vehicle: Pick<Vehicle, 'display_fare_minor' | 'display_fare_type' | 'price_on_request' | 'pricing'>) {
+export function vehiclePriceSummary(
+  vehicle: Pick<Vehicle, 'display_fare_minor' | 'display_fare_type' | 'price_on_request' | 'pricing'>,
+  copy: Pick<VehicleCardCopy, 'pricing' | 'priceOnRequest' | 'getQuote' | 'startingFrom' | 'baseFare' | 'baseFareIncludesFirstKm' | 'minimumFare'> = defaultVehicleCardCopy,
+) {
   if (vehicle.price_on_request) {
-    return { eyebrow: 'Pricing', price: 'Price on request', detail: null };
+    return { eyebrow: copy.pricing, price: copy.priceOnRequest, detail: null };
   }
   if (vehicle.display_fare_minor === null) {
-    return { eyebrow: 'Pricing', price: 'Get a quote', detail: null };
+    return { eyebrow: copy.pricing, price: copy.getQuote, detail: null };
   }
 
   if (vehicle.display_fare_type === 'base') {
     const distance = vehicle.pricing.base_distance_km;
     return {
-      eyebrow: 'Starting from',
+      eyebrow: copy.startingFrom,
       price: money(vehicle.display_fare_minor),
-      detail: distance ? `Base fare · includes first ${distance} km` : 'Base fare',
+      detail: distance ? fillTemplate(copy.baseFareIncludesFirstKm, { distance }) : copy.baseFare,
     };
   }
 
-  return { eyebrow: 'Starting from', price: money(vehicle.display_fare_minor), detail: 'Minimum fare' };
+  return { eyebrow: copy.startingFrom, price: money(vehicle.display_fare_minor), detail: copy.minimumFare };
+}
+
+export function vehicleCardTemplate(template: string, values: Record<string, string | number>): string {
+  return fillTemplate(template, values);
 }
 
 export function formatDateTime(iso: string): string {

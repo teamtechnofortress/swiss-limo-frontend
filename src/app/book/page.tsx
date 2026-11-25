@@ -1,11 +1,4 @@
-import type { Metadata } from 'next';
-import { BookingFlow } from '@/components/booking/BookingFlow';
-import { Container } from '@/components/ui/primitives';
-
-export const metadata: Metadata = {
-  title: 'Book a journey',
-  description: 'Plan your private chauffeur journey: choose your route, your vehicle and pay securely.',
-};
+import { redirect } from 'next/navigation';
 
 export default async function BookPage({
   searchParams,
@@ -13,37 +6,9 @@ export default async function BookPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const passengers = Number(params.passengers);
-
-  return (
-    <div className="bg-[#f8f9fa] min-h-screen flex flex-col">
-      
-      <div className="relative flex min-h-[164px] w-full shrink-0 items-center overflow-hidden bg-[#0f172a] py-0 md:h-[184px] xl:h-[216px]">
-        <img 
-          src="/images/home/step1.png" 
-          alt="Swiss Alps Transfer" 
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-60"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0f172a]/90 via-[#0f172a]/20 to-transparent"></div>
-        
-        <div className="relative z-10 w-full max-w-7xl mx-auto -translate-y-3 px-4 sm:px-6 lg:px-8">
-          <h1 data-header-solid-trigger className="text-2xl md:text-4xl font-serif font-bold text-white mb-0" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor, 0 0.5px 0 currentColor, 0 -0.5px 0 currentColor' }}>
-            Book Your <span className="text-[#eab308]">Transfer</span>
-          </h1>
-        </div>
-      </div>
-
-      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20 pb-12">
-        <BookingFlow
-          from={params.from}
-          to={params.to}
-          date={params.date}
-          time={params.time}
-          passengers={Number.isInteger(passengers) && passengers > 0 ? passengers : undefined}
-          vehicle={params.vehicle}
-          roundTrip={params.roundTrip === 'true'}
-        />
-      </div>
-    </div>
+  const query = new URLSearchParams(
+    Object.entries(params).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
   );
+
+  redirect(`/en/book${query.size ? `?${query.toString()}` : ''}`);
 }

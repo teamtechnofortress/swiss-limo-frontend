@@ -1,22 +1,32 @@
 import Link from 'next/link';
+import type { FleetContent } from '@/content/fleet';
 
 const TABS = [
-  { value: '', label: 'All vehicles' },
-  { value: 'executive', label: 'Executive' },
-  { value: 'first_class', label: 'First class' },
-  { value: 'van', label: 'Vans' },
-];
+  { value: '', copyKey: 'all' },
+  { value: 'executive', copyKey: 'executive' },
+  { value: 'first_class', copyKey: 'firstClass' },
+  { value: 'van', copyKey: 'van' },
+] as const;
 
-export function CategoryTabs({ active }: { active: string }) {
+export function CategoryTabs({
+  active,
+  basePath,
+  copy,
+}: {
+  active: string;
+  basePath: string;
+  copy: Pick<FleetContent['listing'], 'categories' | 'categoriesLabel'>;
+}) {
   return (
-    <nav className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-[#0d1b2a]/10 bg-white/70 p-1" aria-label="Vehicle categories">
+    <nav className="inline-flex max-w-full flex-wrap items-center gap-1 rounded-full border border-[#0d1b2a]/10 bg-white/70 p-1" aria-label={copy.categoriesLabel}>
       {TABS.map((tab) => {
         const isActive = tab.value === active;
+        const label = copy.categories[tab.copyKey];
 
         return (
           <Link
-            key={tab.label}
-            href={tab.value ? `/fleet?category=${tab.value}` : '/fleet'}
+            key={tab.value || 'all'}
+            href={tab.value ? `${basePath}?category=${tab.value}` : basePath}
             aria-current={isActive ? 'page' : undefined}
             className={`rounded-full px-4 py-2.5 text-[11px] font-bold tracking-wide transition sm:px-5 ${
               isActive
@@ -24,7 +34,7 @@ export function CategoryTabs({ active }: { active: string }) {
                 : 'text-[#506079] hover:bg-[#f8f3e9] hover:text-[#0d1b2a]'
             }`}
           >
-            {tab.label}
+            {label}
           </Link>
         );
       })}

@@ -12,10 +12,11 @@ import { Turnstile } from './Turnstile';
 import { CustomerDetailsForm } from './CustomerDetailsForm';
 import { BookingProgress } from './BookingProgress';
 import { api, ApiError } from '@/lib/api';
-import { addDays, formatDateTime, money, zurichLocalToIso, zurichToday } from '@/lib/format';
+import { addDays, money, zurichLocalToIso, zurichToday } from '@/lib/format';
 import { createPublicBooking, resolveCheckoutUrl } from '@/lib/public-booking';
 import { getPublicConfig } from '@/lib/public-config';
 import type { PaymentMethodKey, PlaceValue, Quote, QuoteOffer, RouteMetrics } from '@/lib/types';
+import type { BookingContent } from '@/content/booking';
 
 export interface BookingFlowProps {
   from?: string;
@@ -25,26 +26,22 @@ export interface BookingFlowProps {
   passengers?: number;
   vehicle?: string;
   roundTrip?: boolean;
+  content: BookingContent;
+  locale: string;
 }
-
-const STEPS = [
-  { step: 1, label: 'Plan Your Journey' },
-  { step: 2, label: 'Choose Vehicle' },
-  { step: 3, label: 'Your Details' },
-  { step: 4, label: 'Review & Book' },
-] as const;
 
 const lightInput = "h-12 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm font-medium text-[#0f172a] placeholder:text-gray-400 transition focus:border-[#eab308] focus:outline-none focus:ring-2 focus:ring-[#eab308]/20";
 const lightLabel = "mb-1.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#0f172a]";
 
-function messageOf(error: unknown): string {
-  return error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
+function messageOf(error: unknown, fallback: string): string {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
-export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTrip = false }: BookingFlowProps) {
+export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTrip = false, content, locale }: BookingFlowProps) {
+  const c = content;
   const router = useRouter();
   const flowTopRef = useRef<HTMLDivElement>(null);
-  const hasMountedStepRef = useRef(false);
+  const previousStepRef = useRef(1);
 
   const [step, setStep] = useState(1);
   const [pickup, setPickup] = useState<PlaceValue | null>(null);
@@ -75,7 +72,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
   const selected: QuoteOffer | null = offers.find((o) => o.vehicle_id === selectedId) ?? null;
   const outbound = quote?.legs.find((l) => l.direction === 'outbound') ?? null;
   const inbound = quote?.legs.find((l) => l.direction === 'return') ?? null;
-  const flowSteps = vehicle ? STEPS.filter(({ step: stepNumber }) => stepNumber !== 2) : STEPS;
+  const selectedCategory = selected ? categoryLabel(selected.category, c.offer.categories) : '';
+  const flowSteps = c.progress.steps.map((label, index) => ({ step: index + 1, label }));
+  const dateFormatter = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'Europe/Zurich' });
+  const timeFormatter = new Intl.DateTimeFormat(locale, { timeStyle: 'short', timeZone: 'Europe/Zurich' });
+  const formatDate = (iso: string) => dateFormatter.format(new Date(iso));
+  const formatTime = (iso: string) => timeFormatter.format(new Date(iso));
 
   useEffect(() => {
     let active = true;
@@ -98,10 +100,10 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
   }, []);
 
   useEffect(() => {
-    if (!hasMountedStepRef.current) {
-      hasMountedStepRef.current = true;
+    if (previousStepRef.current === step) {
       return;
     }
+    previousStepRef.current = step;
 
     const scrollToStep = () => {
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -120,12 +122,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
     setError(null);
 
     if (!pickup || !dropoff) {
-      setError('Please choose both addresses from the suggestions.');
+      setError(c.flow.addressError);
       return;
     }
 
     if (turnstileEnabled && !turnstileToken) {
-      setError('Please complete the security verification before checking availability.');
+      setError(c.flow.quoteSecurityError);
       return;
     }
 
@@ -158,7 +160,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
       setTurnstileToken(null);
       setStep(preselected ? 3 : 2);
     } catch (e) {
-      setError(messageOf(e));
+      setError(messageOf(e, c.flow.fallbackError));
       if (turnstileEnabled) {
         setTurnstileToken(null);
         setTurnstileKey((key) => key + 1);
@@ -173,17 +175,17 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
     setError(null);
 
     if (!quote || !selected) {
-      setError('Please choose a vehicle first.');
+      setError(c.flow.chooseVehicleError);
       return;
     }
 
     if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
-      setError('Please complete your contact details.');
+      setError(c.flow.contactError);
       return;
     }
 
     if (turnstileEnabled && !turnstileToken) {
-      setError('Please complete the security verification before confirming your booking.');
+      setError(c.flow.bookingSecurityError);
       return;
     }
 
@@ -218,7 +220,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
         setStep(1);
         setSelectedId(null);
       }
-      setError(messageOf(e));
+      setError(messageOf(e, c.flow.fallbackError));
       if (turnstileEnabled) {
         setTurnstileToken(null);
         setTurnstileKey((key) => key + 1);
@@ -231,7 +233,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
   const handleStep3Continue = (e: FormEvent) => {
     e.preventDefault();
     if (!customer.name.trim() || !customer.email.trim() || !customer.phone.trim()) {
-      setError('Please complete your contact details.');
+      setError(c.flow.contactError);
       return;
     }
     setError(null);
@@ -246,6 +248,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
         <BookingProgress
           steps={flowSteps.map(({ step: id, label }) => ({ id, label }))}
           currentStep={step}
+          label={c.progress.label}
         />
       </div>
 
@@ -261,10 +264,10 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
             
             <div className="mb-6 max-w-2xl">
               <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
-                Step 1 of 4
+                {c.flow.step.replace('{step}', '1')}
               </p>
               <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
-                Plan Your Journey
+                {c.flow.planTitle}
               </h2>
             </div>
             
@@ -272,40 +275,42 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
               <div className="grid min-w-0 w-full grid-cols-1 gap-4 sm:grid-cols-2">
                 
                 <div className="min-w-0 w-full max-w-full">
-                  <label className={lightLabel}>Pickup</label>
+                  <label className={lightLabel}>{c.flow.pickup}</label>
                   <PlaceField
                     id="pickup"
                     value={pickup}
                     onChange={setPickup}
-                    placeholder="Address, hotel or airport"
+                    placeholder={c.flow.addressPlaceholder}
                     initialQuery={from}
                     googleBrowserKey={googleBrowserKey}
+                    selectedLabel={c.placeField.selected}
                   />
                 </div>
                 <div className="min-w-0 w-full max-w-full">
-                  <label className={lightLabel}>Destination</label>
+                  <label className={lightLabel}>{c.flow.destination}</label>
                   <PlaceField
                     id="dropoff"
                     value={dropoff}
                     onChange={setDropoff}
-                    placeholder="Address, hotel or airport"
+                    placeholder={c.flow.addressPlaceholder}
                     initialQuery={to}
                     googleBrowserKey={googleBrowserKey}
+                    selectedLabel={c.placeField.selected}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
                 <div>
-                  <label className={lightLabel}>Date</label>
+                  <label className={lightLabel}>{c.flow.date}</label>
                   <input type="date" className={lightInput} value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
                 </div>
                 <div>
-                  <label className={lightLabel}>Time</label>
+                  <label className={lightLabel}>{c.flow.time}</label>
                   <input type="time" className={lightInput} value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
                 </div>
                 <div>
-                  <label className={lightLabel}>Passengers</label>
+                  <label className={lightLabel}>{c.flow.passengers}</label>
                   <select className={lightInput} value={partySize} onChange={(e) => setPartySize(Number(e.target.value))}>
                     {Array.from({ length: 14 }, (_, i) => i + 1).map((n) => (
                       <option key={n} value={n}>{n}</option>
@@ -313,7 +318,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                   </select>
                 </div>
                 <div>
-                  <label className={lightLabel}>Luggage</label>
+                  <label className={lightLabel}>{c.flow.luggage}</label>
                   <select className={lightInput} value={bags} onChange={(e) => setBags(Number(e.target.value))}>
                     {Array.from({ length: 15 }, (_, i) => i).map((n) => (
                       <option key={n} value={n}>{n}</option>
@@ -330,18 +335,18 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                     onChange={(e) => setIsRoundTrip(e.target.checked)}
                     className="h-4 w-4 accent-[#eab308]"
                   />
-                  <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-black">Add a return journey</span>
+                  <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-black">{c.flow.returnJourney}</span>
                 </label>
               </div>
 
               {isRoundTrip && (
                 <div className="grid grid-cols-1 gap-4 pb-1 sm:grid-cols-2">
                   <div>
-                    <label className={lightLabel}>Return date</label>
+                    <label className={lightLabel}>{c.flow.returnDate}</label>
                     <input type="date" className={lightInput} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required />
                   </div>
                   <div>
-                    <label className={lightLabel}>Return time</label>
+                    <label className={lightLabel}>{c.flow.returnTime}</label>
                     <input type="time" className={lightInput} value={returnTime} onChange={(e) => setReturnTime(e.target.value)} required />
                   </div>
                 </div>
@@ -349,7 +354,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
 
               {turnstileEnabled && (
                 <div className="rounded-xl border border-[#eab308]/30 bg-[#fffaf0] px-4 py-3">
-                  <div className="flex items-center gap-2 text-[11px] font-semibold text-[#59430b]"><ShieldCheck size={15} className="text-[#d99b14]" /> Security verification is required to check availability.</div>
+                  <div className="flex items-center gap-2 text-[11px] font-semibold text-[#59430b]"><ShieldCheck size={15} className="text-[#d99b14]" /> {c.flow.quoteSecurity}</div>
                   <div className="mt-2 flex justify-center sm:justify-start">
                     <Turnstile key={`quote-${turnstileKey}`} onToken={setTurnstileToken} siteKey={turnstileSiteKey} theme="light" />
                   </div>
@@ -358,7 +363,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
 
               <div className="flex w-full justify-center pt-1 sm:justify-end">
                 <button type="submit" disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-8 py-3 text-sm font-bold text-black transition-all hover:shadow-lg disabled:opacity-50 sm:w-auto">
-                  {busy ? 'Checking availability…' : 'Continue to choose vehicle'}
+                  {busy ? c.flow.checking : c.flow.chooseVehicle}
                   {!busy && <ArrowRight size={16} />}
                 </button>
               </div>
@@ -371,16 +376,16 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
             
             <div className="mb-5">
               <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
-                Step 2 of 4
+                {c.flow.step.replace('{step}', '2')}
               </p>
               <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
-                    Choose Your Vehicle
+                    {c.flow.vehicleTitle}
                   </h2>
-                  <p className="mt-1 text-sm text-gray-500">Select the vehicle that best suits your journey.</p>
+                  <p className="mt-1 text-sm text-gray-500">{c.flow.vehicleIntro}</p>
                 </div>
-                <p className="text-xs font-semibold text-[#536fad]">{offers.length} {offers.length === 1 ? 'vehicle' : 'vehicles'} available</p>
+                <p className="text-xs font-semibold text-[#536fad]">{offers.length} {offers.length === 1 ? c.flow.vehicleAvailable : c.flow.vehiclesAvailable}</p>
               </div>
             </div>
 
@@ -391,6 +396,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                   offer={offer}
                   selected={offer.vehicle_id === selectedId}
                   onSelect={() => setSelectedId(offer.vehicle_id)}
+                  copy={c.offer}
                 />
               ))}
             </div>
@@ -401,7 +407,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                 onClick={() => setStep(1)}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-5 text-sm font-bold text-black transition hover:bg-gray-50 sm:w-auto"
               >
-                <ArrowLeft size={16} /> Change journey
+                <ArrowLeft size={16} /> {c.flow.changeJourney}
               </button>
               <button
                 type="button"
@@ -409,7 +415,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                 onClick={() => setStep(3)}
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 text-sm font-bold text-black transition hover:shadow-lg disabled:opacity-50 sm:w-auto"
               >
-                Continue <ArrowRight size={16} />
+                {c.flow.continue} <ArrowRight size={16} />
               </button>
             </div>
           </div>
@@ -428,6 +434,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
               onSubmit={handleStep3Continue} 
               onBack={() => setStep(vehicle ? 1 : 2)}
               busy={busy}
+              copy={c.customer}
+              eyebrow={c.flow.step.replace('{step}', '3')}
             />
           </div>
         )}
@@ -436,12 +444,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
           <div className="h-full rounded-2xl border-2 border-gray-200 bg-white p-5 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.28)] md:p-6">
             <div className="mb-5">
               <p className="mb-1 text-[13px] font-bold tracking-wider text-[#eab308] md:text-[14px]">
-                Step 4 of 4
+                {c.flow.step.replace('{step}', '4')}
               </p>
               <h2 className="font-serif text-3xl font-bold text-[#0f172a] md:text-4xl" style={{ textShadow: '1px 0 0 #0f172a, 0 1px 0 #0f172a' }}>
-                Review & Book
+                {c.flow.reviewTitle}
               </h2>
-              <p className="mt-1 text-sm leading-relaxed text-[#536fad]">Review your journey and contact details, then submit your booking request.</p>
+              <p className="mt-1 text-sm leading-relaxed text-[#536fad]">{c.flow.reviewIntro}</p>
             </div>
 
             <form onSubmit={confirmBooking} className="space-y-4">
@@ -451,23 +459,23 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                 {/* Journey Details */}
                 <div className="h-full rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm transition-shadow hover:shadow-md">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><MapPin size={12} /> Journey Details</h3>
-                    <button type="button" onClick={() => setStep(1)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> Edit</button>
+                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><MapPin size={12} /> {c.flow.journeyDetails}</h3>
+                    <button type="button" onClick={() => setStep(1)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> {c.flow.edit}</button>
                   </div>
                   <div className="space-y-2 text-xs">
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">From</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound?.pickup ?? pickup?.text}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">To</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound?.dropoff ?? dropoff?.text}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Date</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Time</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Distance</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{quote.route_summary ? routeSummary(quote.route_summary) : '—'}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.from}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound?.pickup ?? pickup?.text}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.to}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound?.dropoff ?? dropoff?.text}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.date}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound ? formatDate(outbound.starts_at) : startDate}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.time}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{outbound ? formatTime(outbound.starts_at) : startTime}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.distance}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{quote.route_summary ? routeSummary(quote.route_summary) : '—'}</span></div>
                   </div>
                 </div>
 
                 {/* Selected Vehicle */}
                 <div className="h-full rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm transition-shadow hover:shadow-md">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><Car size={12} /> Selected Vehicle</h3>
-                    <button type="button" onClick={() => setStep(2)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> Edit</button>
+                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><Car size={12} /> {c.flow.selectedVehicle}</h3>
+                    <button type="button" onClick={() => setStep(2)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> {c.flow.edit}</button>
                   </div>
 
                   <div className="flex min-h-28 items-center gap-4">
@@ -481,12 +489,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                       </div>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="inline-flex rounded-full bg-[#eab308]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#8a6505]">{selected.category}</p>
+                      <p className="inline-flex rounded-full bg-[#eab308]/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#8a6505]">{selectedCategory}</p>
                       <p className="mt-2 truncate font-serif text-xl font-bold leading-none text-[#0f172a] md:text-2xl">{selected.name}</p>
-                      <p className="mt-1 text-[11px] text-[#536fad]">Selected for your journey</p>
+                      <p className="mt-1 text-[11px] text-[#536fad]">{c.flow.selectedForJourney}</p>
                       <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[10px] font-medium text-slate-600">
-                        <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1"><Users size={11} className="text-[#536fad]" /> {quote.passengers} passengers</span>
-                        <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1"><Briefcase size={11} className="text-[#536fad]" /> {bags} bags</span>
+                        <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1"><Users size={11} className="text-[#536fad]" /> {c.offer.passengers.replace('{count}', String(quote.passengers))}</span>
+                        <span className="flex items-center gap-1 rounded-full border border-slate-200 bg-white px-2 py-1"><Briefcase size={11} className="text-[#536fad]" /> {c.offer.bags.replace('{count}', String(bags))}</span>
                       </div>
                     </div>
                   </div>
@@ -495,32 +503,32 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                 {/* Your Details */}
                 <div className="h-full rounded-xl border border-slate-200 bg-slate-50/60 p-4 shadow-sm transition-shadow hover:shadow-md">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><Users size={12} /> Your Details</h3>
-                    <button type="button" onClick={() => setStep(3)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> Edit</button>
+                    <h3 className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><Users size={12} /> {c.flow.yourDetails}</h3>
+                    <button type="button" onClick={() => setStep(3)} className="flex items-center gap-0.5 text-[10px] font-bold text-[#d99b14] transition hover:text-[#0f172a]"><FileText size={10} /> {c.flow.edit}</button>
                   </div>
                   <div className="space-y-2 text-xs">
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Full name</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.name}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Email</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.email}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Phone</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.phone}</span></div>
-                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">Flight number</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{flight || '—'}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.fullName}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.name}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.email}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.email}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.phone}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{customer.phone}</span></div>
+                    <div className="flex items-start justify-between gap-4"><span className="shrink-0 text-slate-500">{c.flow.flightNumber}</span><span className="max-w-[65%] text-right font-semibold leading-4 text-[#0f172a] break-words">{flight || '—'}</span></div>
                   </div>
                 </div>
 
                 {/* Price Summary */}
                 <div className="h-full rounded-xl border border-[#eab308]/30 bg-[#fffaf0] p-4 shadow-sm transition-shadow hover:shadow-md">
-                  <h3 className="mb-3 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><FileText size={12} /> Price Summary</h3>
+                  <h3 className="mb-3 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.1em] text-[#0f172a]"><FileText size={12} /> {c.flow.priceSummary}</h3>
                   <div className="mb-3 space-y-2 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-black">Distance</span>
+                      <span className="text-black">{c.flow.distance}</span>
                       <span className="font-semibold text-[#0f172a]">{quote.route_summary ? `${quote.route_summary.distance_km} km` : '—'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-black">Rate per km</span>
+                      <span className="text-black">{c.flow.ratePerKm}</span>
                       <span className="font-semibold text-[#0f172a]">{money(selected.vat.gross / (quote.route_summary?.distance_km || 1))}</span>
                     </div>
                   </div>
                   <div className="flex items-center justify-between border-t border-[#eab308]/20 pt-3">
-                    <span className="font-bold text-sm text-[#0f172a]">Estimated Total</span>
+                    <span className="font-bold text-sm text-[#0f172a]">{c.flow.estimatedTotal}</span>
                     <span className="text-xl font-bold tracking-tight text-[#b77909] tabular-nums">{money(selected.vat.gross)}</span>
                   </div>
                 </div>
@@ -532,8 +540,8 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                     <div className="flex items-start gap-2">
                       <ShieldCheck size={16} className="mt-0.5 shrink-0 text-[#d99b14]" />
                       <div>
-                        <p className="text-[11px] font-semibold text-[#59430b]">Security verification is required before confirming your booking.</p>
-                        <p className="mt-0.5 text-[10px] text-[#806522]">This protects your request and helps prevent automated submissions.</p>
+                        <p className="text-[11px] font-semibold text-[#59430b]">{c.flow.bookingSecurity}</p>
+                        <p className="mt-0.5 text-[10px] text-[#806522]">{c.flow.bookingSecurityDescription}</p>
                       </div>
                     </div>
                     <div className="flex justify-center sm:justify-end">
@@ -549,14 +557,14 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                   onClick={() => setStep(3)}
                   className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full border border-gray-300 bg-white px-5 text-sm font-bold text-black transition hover:bg-gray-50 sm:w-auto"
                 >
-                  <ArrowLeft size={14} /> Back to Details
+                  <ArrowLeft size={14} /> {c.flow.backToDetails}
                 </button>
                 <button
                   type="submit"
                   disabled={busy}
                   className="flex h-11 w-full items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#facc15] to-[#eab308] px-5 text-sm font-bold text-black transition hover:shadow-lg disabled:opacity-50 sm:w-auto"
                 >
-                  {busy ? 'Processing...' : 'Book Now (Request Transfer)'} <Send size={14} />
+                  {busy ? c.flow.processing : c.flow.bookNow} <Send size={14} />
                 </button>
               </div>
             </form>
@@ -570,7 +578,7 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
           <div className="bg-[#0f172a] px-4 py-2.5 flex items-center gap-2">
             {step === 4 ? <ShieldCheck className="text-[#eab308]" size={18} /> : <ClipboardList className="text-[#eab308]" size={18} />}
             <h3 className="text-lg font-serif text-white font-bold">
-              {step === 4 ? 'Confirm Your Booking' : 'Your Booking Summary'}
+              {step === 4 ? c.flow.confirmBooking : c.flow.bookingSummary}
             </h3>
           </div>
 
@@ -579,18 +587,18 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
             {step === 4 ? (
               <div className="space-y-4 pt-1 pb-2">
                 <p className="text-xs text-gray-600 leading-relaxed">
-                  By submitting this request, you agree to our <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>.
+                  {c.flow.termsPrefix} <a href="#" className="text-blue-600 hover:underline">{c.flow.terms}</a> {c.flow.termsJoiner} <a href="#" className="text-blue-600 hover:underline">{c.flow.privacy}</a>
                 </p>
                 
                 <div className="bg-green-50/50 border border-green-100 rounded-xl p-3 space-y-2">
                   <div className="flex items-center gap-2 text-green-700 text-xs font-semibold">
-                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> Instant booking request
+                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> {c.flow.instantRequest}
                   </div>
                   <div className="flex items-center gap-2 text-green-700 text-xs font-semibold">
-                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> Confirmation via email & WhatsApp
+                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> {c.flow.confirmationVia}
                   </div>
                   <div className="flex items-center gap-2 text-green-700 text-xs font-semibold">
-                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> Our team will contact you shortly
+                    <Check size={14} className="bg-green-500 text-white rounded-full p-0.5" /> {c.flow.teamContact}
                   </div>
                 </div>
               </div>
@@ -600,33 +608,33 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                   <div className="mb-2 rounded-xl border border-gray-200 bg-gray-50 p-2 flex items-start gap-2">
                     <Car className="text-[#0f172a] mt-0.5 shrink-0" size={16} />
                     <div>
-                      <p className="text-[9px] uppercase tracking-wider text-gray-500">Selected vehicle</p>
+                      <p className="text-[9px] uppercase tracking-wider text-gray-500">{c.flow.selectedVehicleLabel}</p>
                       <p className="mt-0.5 font-serif text-sm text-[#0f172a] leading-tight">{selected.name}</p>
-                      <p className="text-[10px] text-gray-500">{selected.category}</p>
+                      <p className="text-[10px] text-gray-500">{selectedCategory}</p>
                     </div>
                   </div>
                 )}
 
-                <SidebarRow icon={<MapPin size={14} />} label="Pickup" value={outbound?.pickup ?? pickup?.text ?? '—'} />
-                <SidebarRow icon={<MapPin size={14} />} label="Destination" value={outbound?.dropoff ?? dropoff?.text ?? '—'} />
+                <SidebarRow icon={<MapPin size={14} />} label={c.flow.pickup} value={outbound?.pickup ?? pickup?.text ?? '—'} />
+                <SidebarRow icon={<MapPin size={14} />} label={c.flow.destination} value={outbound?.dropoff ?? dropoff?.text ?? '—'} />
                 <SidebarRow 
                   icon={<Calendar size={14} />} 
-                  label="Date" 
-                  value={outbound ? formatDateTime(outbound.starts_at).split(',')[0] : startDate} 
+                  label={c.flow.date}
+                  value={outbound ? formatDate(outbound.starts_at) : startDate}
                 />
                 <SidebarRow 
                   icon={<Clock size={14} />} 
-                  label="Time" 
-                  value={outbound ? formatDateTime(outbound.starts_at).split(',')[1] : startTime} 
+                  label={c.flow.time}
+                  value={outbound ? formatTime(outbound.starts_at) : startTime}
                 />
                 <SidebarRow 
                   icon={<Users size={14} />} 
-                  label="Passengers" 
+                  label={c.flow.passengers}
                   value={`${quote?.passengers ?? partySize}`} 
                 />
                 <SidebarRow 
                   icon={<Briefcase size={14} />} 
-                  label="Luggage" 
+                  label={c.flow.luggage}
                   value={`${bags}`} 
                 />
 
@@ -634,26 +642,26 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
                   <>
                     <SidebarRow 
                       icon={<Calendar size={14} />} 
-                      label="Return" 
-                      value={inbound ? formatDateTime(inbound.starts_at) : `${returnDate} ${returnTime}`} 
+                      label={c.flow.return}
+                      value={inbound ? `${formatDate(inbound.starts_at)} ${formatTime(inbound.starts_at)}` : `${returnDate} ${returnTime}`}
                     />
                   </>
                 )}
 
                 {quote?.route_summary && (
-                  <SidebarRow icon={<FileText size={14} />} label="Route" value={routeSummary(quote.route_summary)} />
+                  <SidebarRow icon={<FileText size={14} />} label={c.flow.route} value={routeSummary(quote.route_summary)} />
                 )}
 
                 <div className="pt-2">
                   {selected ? (
                     <>
                       <div className="flex items-baseline justify-between border-t border-gray-100 pt-2">
-                        <span className="text-sm font-bold text-[#0f172a]">Estimated Total</span>
+                        <span className="text-sm font-bold text-[#0f172a]">{c.flow.estimatedTotal}</span>
                         <span className="font-sans text-sm sm:text-xl text-[#0f172a] leading-none">{money(selected.vat.gross)}</span>
                       </div>
                     </>
                   ) : (
-                    <p className="text-xs text-gray-500">Choose a vehicle to see your total price.</p>
+                    <p className="text-xs text-gray-500">{c.flow.chooseVehicleForPrice}</p>
                   )}
                 </div>
               </>
@@ -666,12 +674,12 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
             <div className="text-[#eab308]">
               <ShieldCheck size={20} />
             </div>
-            <h3 className="text-lg font-serif text-[#0f172a] font-bold" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor' }}>Need Help?</h3>
+            <h3 className="text-lg font-serif text-[#0f172a] font-bold" style={{ textShadow: '0.5px 0 0 currentColor, -0.5px 0 0 currentColor' }}>{c.flow.needHelp}</h3>
           </div>
-          <p className="text-xs text-[#0f172a] mb-3">Our team is here to assist you with your booking, special requests or custom travel plans.</p>
+          <p className="text-xs text-[#0f172a] mb-3">{c.flow.helpText}</p>
           <div className="flex gap-2">
             <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Phone size={12}/> +41 79 123 45 67</button>
-            <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Mail size={12}/> Chat</button>
+            <button className="flex-1 flex items-center justify-center gap-1 rounded-full border border-gray-200 py-1.5 text-xs font-bold text-[#0f172a] hover:bg-gray-50"><Mail size={12}/> {c.flow.chat ?? 'Chat'}</button>
           </div>
         </div>
       </aside>
@@ -682,6 +690,13 @@ export function BookingFlow({ from, to, date, time, passengers, vehicle, roundTr
 function routeSummary(route: RouteMetrics): string {
   const distance = new Intl.NumberFormat('en-CH', { maximumFractionDigits: 1 }).format(route.distance_km);
   return `${distance} km · ${route.duration_minutes} min`;
+}
+
+function categoryLabel(category: string, categories: BookingContent['offer']['categories']): string {
+  if (category === 'first_class') return categories.firstClass;
+  if (category === 'executive') return categories.executive;
+  if (category === 'van') return categories.van;
+  return category;
 }
 
 function SidebarRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {

@@ -5,22 +5,24 @@ import { ArrowRight, CalendarDays, Clock3, MapPin, Plane, PlaneLanding, PlaneTak
 import { useRouter } from 'next/navigation';
 import { PlaceField } from '@/components/booking/PlaceField';
 import { getPublicConfig } from '@/lib/public-config';
+import type { AirportQuoteFormCopy } from '@/content/airport';
 import type { PlaceValue } from '@/lib/types';
 
 const AIRPORT = 'Zurich Airport (ZRH)';
 
 type JourneyType = 'arrival' | 'departure' | 'round-trip';
 
-const TABS = [
-  { value: 'arrival' as const, label: 'Airport Transfer', icon: PlaneLanding },
-  { value: 'departure' as const, label: 'To Airport (Departure)', icon: PlaneTakeoff },
-];
-
 const fieldBase =
   'h-11 w-full rounded-lg border border-slate-200 bg-white text-[13px] font-medium text-[#0d1b2a] outline-none transition focus:border-[#f1c75b] focus:ring-2 focus:ring-[#f1c75b]/30';
 const labelBase = 'mb-1.5 block text-[11px] font-bold text-[#0d1b2a]';
 
-export function AirportQuoteForm() {
+export function AirportQuoteForm({
+  copy,
+  bookingPath = '/book',
+}: {
+  copy: AirportQuoteFormCopy;
+  bookingPath?: string;
+}) {
   const router = useRouter();
   const [journeyType, setJourneyType] = useState<JourneyType>('arrival');
   const [location, setLocation] = useState<PlaceValue | null>(null);
@@ -49,7 +51,7 @@ export function AirportQuoteForm() {
     event.preventDefault();
 
     if (!location) {
-      setError('Please choose an address from the suggestions.');
+      setError(copy.locationError);
       return;
     }
 
@@ -62,18 +64,22 @@ export function AirportQuoteForm() {
       ...(isRoundTrip ? { roundTrip: 'true' } : {}),
     });
 
-    router.push(`/book?${params.toString()}`);
+    router.push(`${bookingPath}?${params.toString()}`);
   }
 
   return (
     <div className="mx-auto w-full max-w-[1150px] px-4 sm:px-6 lg:px-8">
       <div className="relative z-10 rounded-t-[22px] bg-white px-4 pt-4">
-        <h2 className="text-sm font-bold text-[#0d1b2a]">Get your transfer quote</h2>
+        <h2 className="text-sm font-bold text-[#0d1b2a]">{copy.title}</h2>
         <p className="mt-1 max-w-3xl text-[12px] leading-relaxed text-slate-600">
-          Choose airport transfer, departure to the airport or round trip. Then enter your destination, date, time and passenger count.
+          {copy.description}
         </p>
-        <div role="tablist" aria-label="Journey type" className="mt-3 flex w-full flex-wrap gap-1 sm:w-fit">
-          {TABS.map(({ value, label, icon: Icon }) => {
+        <div role="tablist" aria-label={copy.journeyLabel} className="mt-3 flex w-full flex-wrap gap-1 sm:w-fit">
+          {[
+            { value: 'arrival' as const, label: copy.arrivalTab, icon: PlaneLanding },
+            { value: 'departure' as const, label: copy.departureTab, icon: PlaneTakeoff },
+            { value: 'round-trip' as const, label: copy.roundTripTab, icon: Repeat },
+          ].map(({ value, label, icon: Icon }) => {
             const active = journeyType === value;
             return (
               <button
@@ -100,7 +106,7 @@ export function AirportQuoteForm() {
       >
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-[1.15fr_1.4fr_.9fr_.8fr_.9fr_auto] xl:items-end">
           <label className="min-w-0">
-            <span className={labelBase}>{isDeparture ? 'Destination' : 'Pickup Location'}</span>
+            <span className={labelBase}>{isDeparture ? copy.destination : copy.pickupLocation}</span>
             <span className="flex h-11 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 text-[13px] font-semibold text-[#0d1b2a]">
               <Plane size={16} className="shrink-0 text-[#a76e00]" />
               {AIRPORT}
@@ -108,7 +114,7 @@ export function AirportQuoteForm() {
           </label>
 
           <label className="min-w-0">
-            <span className={labelBase}>{isDeparture ? 'Pickup Location' : 'Destination'}</span>
+            <span className={labelBase}>{isDeparture ? copy.pickupLocation : copy.destination}</span>
             <PlaceField
               key={isDeparture ? 'departure' : 'arrival'}
               id={`airport-${isDeparture ? 'departure' : 'arrival'}-location`}
@@ -117,7 +123,7 @@ export function AirportQuoteForm() {
                 setLocation(value);
                 if (value) setError(null);
               }}
-              placeholder="Hotel / City / Address"
+              placeholder={copy.addressPlaceholder}
               googleBrowserKey={googleBrowserKey}
               statusPosition="overlay"
               className={`${fieldBase} pl-9 pr-3 placeholder:text-slate-400`}
@@ -126,28 +132,28 @@ export function AirportQuoteForm() {
           </label>
 
           <label className="min-w-0">
-            <span className={labelBase}>Date</span>
+            <span className={labelBase}>{copy.date}</span>
             <span className="relative flex h-11 items-center">
               <CalendarDays size={16} className="pointer-events-none absolute left-3 text-[#a76e00]" />
-              <input aria-label="Pickup date" type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${fieldBase} pl-9 pr-2`} />
+              <input aria-label={copy.dateAria} type="date" value={date} onChange={(e) => setDate(e.target.value)} className={`${fieldBase} pl-9 pr-2`} />
             </span>
           </label>
 
           <label className="min-w-0">
-            <span className={labelBase}>Time</span>
+            <span className={labelBase}>{copy.time}</span>
             <span className="relative flex h-11 items-center">
               <Clock3 size={16} className="pointer-events-none absolute left-3 text-[#a76e00]" />
-              <input aria-label="Pickup time" type="time" value={time} onChange={(e) => setTime(e.target.value)} className={`${fieldBase} pl-9 pr-2`} />
+              <input aria-label={copy.timeAria} type="time" value={time} onChange={(e) => setTime(e.target.value)} className={`${fieldBase} pl-9 pr-2`} />
             </span>
           </label>
 
           <label className="min-w-0">
-            <span className={labelBase}>Passengers</span>
+            <span className={labelBase}>{copy.passengers}</span>
             <span className="relative flex h-11 items-center">
               <Users size={16} className="pointer-events-none absolute left-3 text-[#a76e00]" />
               <select value={passengers} onChange={(e) => setPassengers(e.target.value)} className={`${fieldBase} appearance-none pl-9 pr-2`}>
                 {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                  <option key={n} value={n}>{n} {n === 1 ? 'Passenger' : 'Passengers'}</option>
+                  <option key={n} value={n}>{n} {n === 1 ? copy.passenger : copy.passengersPlural}</option>
                 ))}
               </select>
             </span>
@@ -157,7 +163,7 @@ export function AirportQuoteForm() {
             type="submit"
             className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#f1c75b] px-6 text-[13px] font-bold text-[#0d1b2a] shadow-[0_8px_18px_-10px_rgba(176,125,10,.9)] transition hover:bg-[#e6b941] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0d1b2a] sm:col-span-2 xl:col-span-1"
           >
-            Get a Quote <ArrowRight size={16} strokeWidth={2.5} />
+            {copy.submit} <ArrowRight size={16} strokeWidth={2.5} />
           </button>
         </div>
         {error && <p role="alert" className="mt-3 text-[12px] font-semibold text-red-600">{error}</p>}

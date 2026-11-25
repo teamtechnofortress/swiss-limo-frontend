@@ -11,14 +11,16 @@ export function BookingProgress({
   currentStep,
   onStepSelect,
   className = '',
+  label = 'Booking steps',
 }: {
   steps: readonly BookingProgressStep[];
   currentStep: number;
   onStepSelect?: (step: number) => void;
   className?: string;
+  label?: string;
 }) {
   return (
-    <nav className={`relative isolate mx-auto w-full max-w-5xl rounded-2xl border-2 border-gray-200 bg-white px-1 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:px-4 md:px-8 ${className}`} aria-label="Booking steps">
+    <nav className={`relative isolate mx-auto w-full max-w-5xl rounded-2xl border-2 border-gray-200 bg-white px-1 py-2 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:px-4 md:px-8 ${className}`} aria-label={label}>
       <ol className="flex items-center justify-between">
         {steps.map(({ id, label, enabled = true }, index) => {
           const done = currentStep > id;

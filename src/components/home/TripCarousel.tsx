@@ -14,19 +14,13 @@ import {
 import Link from 'next/link';
 import { MapPin, ArrowRight, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { Container } from '@/components/ui/primitives';
+import type { HomeContent } from '@/content/home';
 import { money } from '@/lib/format';
 import type { FeaturedTrip } from '@/lib/trips';
 
 /* ------------------------------------------------------------------ */
-/*  Data & timing                                                      */
+/*  Timing                                                             */
 /* ------------------------------------------------------------------ */
-
-const FALLBACK: FeaturedTrip[] = [
-  { slug: 'zurich-heritage', title: 'Zurich Heritage & Lake Tour', subtitle: 'A private city and lakeside escape', summary: "Explore Zurich's historic old town, landmarks and beautiful lakeside.", descriptionHtml: null, region: 'Zurich', pricingMode: 'fixed', startingFromPriceMinor: 49000, thumbnailUrl: '/images/home/tour-zurich.jpg', originalCoverUrl: '/images/home/tour-zurich.jpg', coverUrl: '/images/home/tour-zurich.jpg' },
-  { slug: 'lucerne-titlis', title: 'Lucerne & Mount Titlis', subtitle: 'A classic alpine day trip', summary: 'Discover Lucerne and the spectacular Mount Titlis with alpine views.', descriptionHtml: null, region: 'Lucerne', pricingMode: 'fixed', startingFromPriceMinor: 59000, thumbnailUrl: '/images/home/tour-lucerne.jpg', originalCoverUrl: '/images/home/tour-lucerne.jpg', coverUrl: '/images/home/tour-lucerne.jpg' },
-  { slug: 'rhine-falls', title: 'Rhine Falls Day Trip', subtitle: 'Waterfalls and historic towns', summary: "Experience Europe's largest waterfall and the charming town of Schaffhausen.", descriptionHtml: null, region: 'Schaffhausen', pricingMode: 'fixed', startingFromPriceMinor: 39000, thumbnailUrl: '/images/home/tour-rhine-falls.jpg', originalCoverUrl: '/images/home/tour-rhine-falls.jpg', coverUrl: '/images/home/tour-rhine-falls.jpg' },
-  { slug: 'interlaken-alpine', title: 'Interlaken Alpine Escape', subtitle: 'Lakes, peaks and fresh alpine air', summary: 'Enjoy breathtaking alpine scenery, lakes and the charm of Interlaken.', descriptionHtml: null, region: 'Interlaken', pricingMode: 'fixed', startingFromPriceMinor: 69000, thumbnailUrl: '/images/home/tour-interlaken.jpg', originalCoverUrl: '/images/home/tour-interlaken.jpg', coverUrl: '/images/home/tour-interlaken.jpg' },
-];
 
 const SLIDE_MS = 6500; // time each trip stays on screen
 const STEP_MS = 850; // rail slide duration (must match the .tc-track transition)
@@ -58,14 +52,14 @@ function thumbnailImage(trip: FeaturedTrip): string {
   return trip.thumbnailUrl ?? largeImage(trip);
 }
 
-function priceDetails(trip: FeaturedTrip): { label: string; value: string } {
+function priceDetails(trip: FeaturedTrip, content: HomeContent['trips']): { label: string; value: string } {
   if (trip.pricingMode === 'fixed' && trip.startingFromPriceMinor !== null) {
-    return { label: 'From', value: money(trip.startingFromPriceMinor) };
+    return { label: content.priceFrom, value: money(trip.startingFromPriceMinor) };
   }
 
   return trip.pricingMode === 'enquiry'
-    ? { label: 'Pricing', value: 'On request' }
-    : { label: 'Pricing', value: 'Route based' };
+    ? { label: content.priceLabel, value: content.priceOnRequest }
+    : { label: content.priceLabel, value: content.routeBased };
 }
 
 /* ------------------------------------------------------------------ */
@@ -158,8 +152,16 @@ const STYLES = `
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
-  const list = useMemo<FeaturedTrip[]>(() => (trips && trips.length > 0 ? trips : FALLBACK), [trips]);
+export function TripCarousel({
+  trips,
+  content,
+  listingHref = '/trips',
+}: {
+  trips: FeaturedTrip[];
+  content: HomeContent['trips'];
+  listingHref?: string;
+}) {
+  const list = trips;
   const n = list.length;
   const multi = n > 1;
 
@@ -445,7 +447,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
       ref={root}
       role="region"
       aria-roledescription="carousel"
-      aria-label="Featured day trips and tours"
+      aria-label={content.regionLabel}
       className="tc-root relative isolate overflow-hidden bg-[#061423] py-8 text-white antialiased md:py-10"
       onKeyDown={onKeyDown}
       onTouchStart={onTouchStart}
@@ -488,21 +490,21 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
             <div>
               <div className="mb-2 flex items-center gap-3">
                 <span className="h-[2px] w-6 rounded-full bg-[#f1c75b]" />
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f1c75b]">Featured private journeys</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f1c75b]">{content.eyebrow}</p>
               </div>
               <h2 className="font-serif text-[28px] font-bold tracking-[-0.02em] text-white md:text-[34px]">
-                Private Day Trips and Tours from Zurich
+                {content.title}
               </h2>
               <p className="mt-1.5 text-[13px] font-medium text-gray-200 md:text-sm">
-                Explore Switzerland at your own pace. Every tour is private, so you choose the stops, the timing and the pace.
+                {content.description}
               </p>
             </div>
 
             <Link
-              href="/trips"
+              href={listingHref}
               className="inline-flex w-fit items-center gap-2 rounded-full border border-white/50 bg-black/20 px-5 py-2.5 text-[12px] font-bold text-white backdrop-blur-sm transition hover:border-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
             >
-              View All Tours <ArrowRight size={14} />
+              {content.viewAll} <ArrowRight size={14} />
             </Link>
           </div>
 
@@ -514,7 +516,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
             >
               {list.map((t, i) => {
                 const on = i === active;
-                const price = priceDetails(t);
+                const price = priceDetails(t, content);
                 return (
                   <article
                     key={`${t.slug}-${i}`}
@@ -559,14 +561,14 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                           tabIndex={on ? 0 : -1}
                           className="inline-flex items-center rounded-full border border-white/50 bg-black/20 px-4 py-2.5 text-[12px] font-bold text-white backdrop-blur-sm transition hover:border-white hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
                         >
-                          Details
+                          {content.details}
                         </Link>
                         <Link
                           href={`/trips/${t.slug}/book`}
                           tabIndex={on ? 0 : -1}
                           className="inline-flex items-center rounded-full bg-[#f1c75b] px-4 py-2.5 text-[12px] font-bold text-[#0d1b2a] shadow-sm transition hover:bg-[#e0b54a] hover:shadow-[0_4px_12px_rgba(241,199,91,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 active:scale-[.98]"
                         >
-                          Book Now <ArrowRight size={14} className="ml-1.5" strokeWidth={2.5} />
+                          {content.bookNow} <ArrowRight size={14} className="ml-1.5" strokeWidth={2.5} />
                         </Link>
                       </div>
                     </div>
@@ -579,7 +581,7 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
             {multi && (
               <div className="tc-rail relative left-1/2 w-screen -translate-x-1/2 px-6 lg:px-10">
                 <div className="mb-2.5 flex items-center justify-between">
-                  <p className="text-[11px] font-medium text-white/60">Up next</p>
+                  <p className="text-[11px] font-medium text-white/60">{content.upNext}</p>
                   <div className="flex items-center gap-2">
                     <span className="mr-1 text-xs tabular-nums text-white/55">
                       {pad(active + 1)} / {pad(n)}
@@ -588,14 +590,14 @@ export function TripCarousel({ trips }: { trips?: FeaturedTrip[] }) {
                       type="button"
                       onClick={() => setUserPaused((p) => !p)}
                       className={ctrl}
-                      aria-label={userPaused ? 'Play slideshow' : 'Pause slideshow'}
+                      aria-label={userPaused ? content.playSlideshow : content.pauseSlideshow}
                     >
                       {userPaused ? <Play size={14} fill="currentColor" /> : <Pause size={14} fill="currentColor" />}
                     </button>
-                    <button type="button" onClick={prev} className={ctrl} aria-label="Previous trip" aria-disabled={locked || undefined}>
+                    <button type="button" onClick={prev} className={ctrl} aria-label={content.previousTrip} aria-disabled={locked || undefined}>
                       <ChevronLeft size={18} />
                     </button>
-                    <button type="button" onClick={next} className={ctrl} aria-label="Next trip" aria-disabled={locked || undefined}>
+                    <button type="button" onClick={next} className={ctrl} aria-label={content.nextTrip} aria-disabled={locked || undefined}>
                       <ChevronRight size={18} />
                     </button>
                   </div>
