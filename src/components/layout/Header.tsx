@@ -23,9 +23,9 @@ const LOCALIZED_TRIP_PATH = /^\/trips\/[^/]+(?:\/book)?$/;
 const LOCALIZED_VEHICLE_PATH = /^\/fleet\/[^/]+$/;
 const LANGUAGES = [
   { locale: 'en', label: 'English' },
-  { locale: 'de-CH', label: 'Deutsch (Schweiz)' },
-  { locale: 'fr-CH', label: 'Français (Suisse)' },
-  { locale: 'it-CH', label: 'Italiano (Svizzera)' },
+  { locale: 'de', label: 'Deutsch (Schweiz)' },
+  { locale: 'fr', label: 'Français (Suisse)' },
+  { locale: 'it', label: 'Italiano (Svizzera)' },
 ] as const;
 
 const bookButtonClass =
@@ -66,11 +66,11 @@ function localizedHref(path: string, locale: string) {
 }
 
 function LanguageFlag({ locale, className = '' }: { locale: (typeof routing.locales)[number]; className?: string }) {
-  const flag = locale === 'fr-CH'
+  const flag = locale === 'fr'
     ? <><rect width="10.67" height="32" fill="#1f4fa3" /><rect x="10.67" width="10.66" height="32" fill="#fff" /><rect x="21.33" width="10.67" height="32" fill="#e3353e" /></>
-    : locale === 'it-CH'
+    : locale === 'it'
       ? <><rect width="10.67" height="32" fill="#16834a" /><rect x="10.67" width="10.66" height="32" fill="#fff" /><rect x="21.33" width="10.67" height="32" fill="#df3c45" /></>
-      : locale === 'de-CH'
+      : locale === 'de'
         ? <><rect width="32" height="10.67" fill="#161616" /><rect y="10.67" width="32" height="10.66" fill="#d5343b" /><rect y="21.33" width="32" height="10.67" fill="#e9bd35" /></>
         : <><rect width="32" height="32" fill="#24498d" /><path d="M0 3 3 0l29 29v3l-3 0L0 3Zm29-3 3 3L3 32H0v-3L29 0Z" fill="#fff" /><path d="m0 5 5-5h3L0 8V5Zm24-5h3L0 27v-3L24 0Zm8 24v3l-5 5h-3l8-8ZM8 32H5l27-27v3L8 32Z" fill="#d93644" /><path d="M13 0h6v13h13v6H19v13h-6V19H0v-6h13V0Z" fill="#fff" /><path d="M14.5 0h3v14.5H32v3H17.5V32h-3V17.5H0v-3h14.5V0Z" fill="#d93644" /></>;
 

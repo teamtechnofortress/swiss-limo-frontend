@@ -11,11 +11,11 @@ import { layoutCopy as frCHLayoutCopy } from '@/messages/fr-CH/layout';
 import { layoutCopy as itCHLayoutCopy } from '@/messages/it-CH/layout';
 import { fallbackPublicConfig, getPublicConfig } from '@/lib/public-config';
 
-const layoutCopies: Record<'en' | 'de-CH' | 'fr-CH' | 'it-CH', LayoutCopy> = {
+const layoutCopies: Record<'en' | 'de' | 'fr' | 'it', LayoutCopy> = {
   en: enLayoutCopy,
-  'de-CH': deCHLayoutCopy,
-  'fr-CH': frCHLayoutCopy,
-  'it-CH': itCHLayoutCopy,
+  de: deCHLayoutCopy,
+  fr: frCHLayoutCopy,
+  it: itCHLayoutCopy,
 };
 
 const serif = Cormorant_Garamond({
