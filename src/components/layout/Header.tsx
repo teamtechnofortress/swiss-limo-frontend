@@ -18,7 +18,7 @@ const NAV = [
   { href: '/contact', key: 'contact' },
 ] as const;
 
-const LOCALIZED_NAV_PATHS = new Set(['/', '/fleet', '/airport-transfers', '/trips', '/wef-2027', '/contact']);
+const LOCALIZED_NAV_PATHS = new Set(['/', '/fleet', '/airport-transfers', '/trips', '/wef-2027', '/chauffeur-price-estimate', '/contact', '/book']);
 const LOCALIZED_TRIP_PATH = /^\/trips\/[^/]+(?:\/book)?$/;
 const LOCALIZED_VEHICLE_PATH = /^\/fleet\/[^/]+$/;
 const LANGUAGES = [
@@ -36,6 +36,7 @@ const TRANSPARENT_HEADER_PATHS = new Set([
   '/fleet',
   '/airport-transfers',
   '/book',
+  '/chauffeur-price-estimate',
   '/wef-2027',
   '/trips',
 ]);
@@ -275,10 +276,9 @@ export function Header({
               aria-label={copy.languageLabel}
               aria-haspopup="menu"
               aria-expanded={languageOpen}
-              className={`inline-flex h-10 items-center gap-2 rounded-full border px-3 text-[12px] font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f1c75b] ${languageOpen ? 'border-white/35 bg-white/15' : 'border-transparent hover:border-white/20 hover:bg-white/10'}`}
+              className={`inline-flex h-10 items-center gap-2 rounded-full border px-3 text-[12px] font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#f1c75b] ${languageOpen ? 'border-white/35 bg-white/15' : 'border-white/20 bg-white/10 hover:border-white/35 hover:bg-white/15'}`}
             >
               <LanguageFlag locale={activeLanguage.locale} />
-              <span className="max-w-32 truncate">{activeLanguage.label}</span>
               <ChevronDown size={14} className={`ml-0.5 transition-transform duration-200 ${languageOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
 

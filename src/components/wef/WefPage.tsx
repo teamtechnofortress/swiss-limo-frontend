@@ -54,7 +54,7 @@ export function WefPage({
           aria-label={content.hero.imageAlt}
         >
           <div className="absolute inset-0 bg-cover bg-[70%_center]" style={{ backgroundImage: `url('${'/images/wef/WEF-2027-hero.png'}')` }} />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,30,50,.97)_0%,rgba(7,30,50,.9)_38%,rgba(7,30,50,.4)_68%,rgba(7,30,50,.1)_100%)] max-md:bg-[linear-gradient(180deg,rgba(7,30,50,.94)_0%,rgba(7,30,50,.82)_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,30,50,.97)_0%,rgba(7,30,50,.9)_38%,rgba(7,30,50,.4)_68%,rgba(7,30,50,.5)_100%)] max-md:bg-[linear-gradient(180deg,rgba(7,30,50,.94)_0%,rgba(7,30,50,.82)_100%)]" />
         </div>
         <Container className="relative max-w-[1240px] pb-24 pt-28 sm:pb-28 sm:pt-32 lg:pt-32 xl:pt-40">
           <div className="max-w-[660px]">

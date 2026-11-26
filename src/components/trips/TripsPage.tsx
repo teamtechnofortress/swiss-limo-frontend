@@ -31,8 +31,8 @@ export function TripsPage({
     <div className="overflow-hidden bg-[#f8f3e9] text-[#0d1b2a]">
       <section className="relative isolate overflow-hidden bg-[#0d1b2a] text-white">
         <div aria-hidden="true" className="absolute inset-0">
-          <img src="/images/trips/listinghero.jpeg" alt="" className="h-full w-full object-cover object-center" />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,27,42,0.98)_0%,rgba(13,27,42,0.92)_42%,rgba(13,27,42,-0.5)_72%,rgba(13,27,42,0.2)_100%)]" />
+          <img src="/images/trips/trips-hero.png" alt="" className="h-full w-full object-cover object-center" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(13,27,42,0.98)_0%,rgba(13,27,42,0.92)_42%,rgba(13,27,42,0.5)_72%,rgba(13,27,42,0.2)_100%)]" />
           <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-[#0d1b2a]/80 to-transparent" />
         </div>
 

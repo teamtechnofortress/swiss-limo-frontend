@@ -34,6 +34,7 @@ export type FooterCopy = {
     airportTransfers: string;
     dayTours: string;
     fleet: string;
+    priceEstimate: string;
     about: string;
     contact: string;
   };

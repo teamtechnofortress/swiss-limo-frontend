@@ -23,6 +23,6 @@ export const layoutCopy: LayoutCopy = {
     allRightsReserved: 'All rights reserved.',
     privacyPolicy: 'Privacy Policy',
     termsAndConditions: 'Terms & Conditions',
-    nav: { home: 'Home', airportTransfers: 'Airport Transfers', dayTours: 'Day Trips and Tours', fleet: 'Our Fleet', about: 'About Us', contact: 'Contact' },
+    nav: { home: 'Home', airportTransfers: 'Airport Transfers', dayTours: 'Day Trips and Tours', fleet: 'Our Fleet', priceEstimate: 'Chauffeur Price Estimate', about: 'About Us', contact: 'Contact' },
   },
 };

@@ -7,6 +7,7 @@ import bookingContent from './booking';
 import contactContent from './contact';
 import tripDetailContent from './trip-detail';
 import tripBookingContent from './trip-booking';
+import priceEstimateContent from './price-estimate';
 import { layoutCopy } from './layout';
 
 export default {
@@ -19,5 +20,6 @@ export default {
   Contact: contactContent,
   TripDetail: tripDetailContent,
   TripBooking: tripBookingContent,
+  PriceEstimate: priceEstimateContent,
   Layout: layoutCopy,
 };

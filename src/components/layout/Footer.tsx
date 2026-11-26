@@ -11,6 +11,7 @@ const quickLinks = [
   { href: '/airport-transfers', key: 'airportTransfers' },
   { href: '/trips', key: 'dayTours' },
   { href: '/fleet', key: 'fleet' },
+  { href: '/chauffeur-price-estimate', key: 'priceEstimate' },
   { href: '/about', key: 'about' },
   { href: '/contact', key: 'contact' },
 ] as const;
@@ -35,7 +36,7 @@ type ContactItem = {
 export function Footer({ site, copy, locale }: { site: SiteSettings; copy: FooterCopy; locale: string }) {
   const year = new Date().getFullYear();
   const localizedHref = (path: string) =>
-    path === '/' || path === '/fleet' || path === '/airport-transfers' || path === '/trips' || path === '/wef-2027' || path === '/contact'
+    path === '/' || path === '/fleet' || path === '/airport-transfers' || path === '/trips' || path === '/wef-2027' || path === '/chauffeur-price-estimate' || path === '/contact'
       ? `/${locale}${path === '/' ? '' : path}`
       : path;
   const contactItems: ContactItem[] = [

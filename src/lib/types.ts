@@ -127,3 +127,25 @@ export interface PlaceValue {
   placeId: string;
   text: string;
 }
+
+export interface VehiclePriceEstimate {
+  id: number;
+  name: string;
+  slug: string;
+  thumbnail_url: string | null;
+  category: { id: number; name: string; slug: string };
+  capacity: { passengers: number; luggage: number };
+  /** Estimated fare in rappen. */
+  amount_minor: number;
+  formatted_amount: string;
+}
+
+export interface VehiclePriceEstimateResponse {
+  data: {
+    distance_km: number;
+    currency: string;
+    passengers: number | null;
+    luggage: number | null;
+    vehicles: VehiclePriceEstimate[];
+  };
+}
